@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Liste des Communes</h2>
+    <a href="{% url 'commune_create' %}" class="btn btn-primary mb-3">Ajouter une Commune</a>
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>Code</th>
+                <th>Nom</th>
+                <th>Moughataa</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for commune in communes %}
+            <tr>
+                <td>{{ commune.pk }}</td> <!-- Si vous n’avez pas de champ `code`, utilisez `commune.id` -->
+                <td>{{ commune.nom }}</td> <!-- Si le champ est `nom`, remplacez `label` par `nom` -->
+                <td>{{ commune.moughataa }}</td>
+                <td>
+                    <a href="{% url 'commune_update' commune.pk %}" class="btn btn-warning btn-sm">Modifier</a>
+                    <a href="{% url 'commune_delete' commune.pk %}" class="btn btn-danger btn-sm">Supprimer</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

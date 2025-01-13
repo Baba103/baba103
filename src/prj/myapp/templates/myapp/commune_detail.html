@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% block content %}
+    <h2>{{ commune.nom }}</h2>
+    <p>Moughataa: {{ commune.moughataa.nom }}</p>
+    <p>Wilaya: {{ commune.moughataa.wilaya.nom }}</p>
+    <a href="{% url 'commune_update' commune.pk %}">Modifier</a>
+    <a href="{% url 'commune_delete' commune.pk %}">Supprimer</a>
+    <a href="{% url 'commune_list' %}">Retour à la liste</a>
+{% endblock %}

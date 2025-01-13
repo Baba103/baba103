@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Détails du Point de Vente</h2>
+    <ul class="list-group">
+        <li class="list-group-item"><strong>Nom :</strong> {{ pointofsale.nom }}</li>
+        <li class="list-group-item"><strong>Type :</strong> {{ pointofsale.type }}</li>
+        <li class="list-group-item"><strong>Commune :</strong> {{ pointofsale.commune.nom }}</li>
+        <li class="list-group-item"><strong>Localisation :</strong> Latitude {{ pointofsale.gps_lat }}, Longitude {{ pointofsale.gps_lon }}</li>
+    </ul>
+    <a href="{% url 'pointofsale_list' %}" class="btn btn-secondary mt-3">Retour à la liste</a>
+    <a href="{% url 'pointofsale_update' pointofsale.pk %}" class="btn btn-warning mt-3">Modifier</a>
+    <a href="{% url 'pointofsale_delete' pointofsale.pk %}" class="btn btn-danger mt-3">Supprimer</a>
+</div>
+{% endblock %}

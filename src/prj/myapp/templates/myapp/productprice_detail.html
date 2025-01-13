@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Détails du Prix du Produit</h2>
+    <ul class="list-group">
+        <li class="list-group-item"><strong>Produit :</strong> {{ productprice.produit.nom }}</li>
+        <li class="list-group-item"><strong>Point de Vente :</strong> {{ productprice.point_vente.nom }}</li>
+        <li class="list-group-item"><strong>Prix :</strong> {{ productprice.valeur }} MRO</li>
+        <li class="list-group-item"><strong>Date Début :</strong> {{ productprice.date_from }}</li>
+        <li class="list-group-item"><strong>Date Fin :</strong> {{ productprice.date_to|default:"En cours" }}</li>
+    </ul>
+    <a href="{% url 'productprice_list' %}" class="btn btn-secondary mt-3">Retour à la liste</a>
+    <a href="{% url 'productprice_update' productprice.pk %}" class="btn btn-warning mt-3">Modifier</a>
+    <a href="{% url 'productprice_delete' productprice.pk %}" class="btn btn-danger mt-3">Supprimer</a>
+</div>
+{% endblock %}

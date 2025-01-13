@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Liste des Moughataas</h2>
+    <a href="{% url 'moughataa_create' %}" class="btn btn-primary mb-3">Ajouter une Moughataa</a>
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>Code</th>
+                <th>Nom</th>
+                <th>Wilaya</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for moughataa in moughataas %}
+            <tr>
+                <td>{{ moughataa.code }}</td>
+                <td>{{ moughataa.label }}</td>
+                <td>{{ moughataa.wilaya }}</td>
+                <td>
+                    <a href="{% url 'moughataa_update' moughataa.pk %}" class="btn btn-warning btn-sm">Modifier</a>
+                    <a href="{% url 'moughataa_delete' moughataa.pk %}" class="btn btn-danger btn-sm">Supprimer</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

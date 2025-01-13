@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block content %}
+    <h2>Liste des Paniers</h2>
+    <ul>
+        {% for cart in carts %}
+            <li><a href="{% url 'cart_detail' cart.pk %}">{{ cart.nom }}</a></li>
+        {% endfor %}
+    </ul>
+    <a href="{% url 'cart_create' %}">Créer un Panier</a>
+{% endblock %}

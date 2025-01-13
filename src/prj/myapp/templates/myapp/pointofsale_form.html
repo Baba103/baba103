@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>{% if form.instance.pk %}Modifier{% else %}Ajouter{% endif %} un Point de Vente</h2>
+    <form method="post">
+        {% csrf_token %}
+        <div class="mb-3">
+            <label class="form-label">Nom</label>
+            {{ form.nom }}
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Type</label>
+            {{ form.type }}
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Commune</label>
+            {{ form.commune }}  <!-- ✅ Récupération automatique des Communes -->
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Latitude</label>
+            {{ form.gps_lat }}
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Longitude</label>
+            {{ form.gps_lon }}
+        </div>
+        <button type="submit" class="btn btn-success">Sauvegarder</button>
+        <a href="{% url 'pointofsale_list' %}" class="btn btn-secondary">Annuler</a>
+    </form>
+</div>
+{% endblock %}
