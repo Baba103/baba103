@@ -3,7 +3,22 @@
 {% block content %}
 <div class="container mt-4">
     <h2>Liste des Points de Vente</h2>
-    <a href="{% url 'pointofsale_create' %}" class="btn btn-primary mb-3">Ajouter un Point de Vente</a>
+
+    <!-- Formulaire de recherche -->
+    <form method="get" class="d-flex mb-3">
+        <input type="text" name="q" class="form-control me-2" placeholder="Rechercher par nom, type ou commune" value="{{ query }}">
+        <button type="submit" class="btn btn-outline-primary">Rechercher</button>
+    </form>
+
+    <!-- Boutons d'actions -->
+    <div class="mb-3">
+        <a href="{% url 'pointofsale_create' %}" class="btn btn-primary">Ajouter un Point de Vente</a>
+        <a href="{% url 'pointofsale_export' %}?format=csv" class="btn btn-success">Exporter en CSV</a>
+        <a href="{% url 'pointofsale_export' %}?format=xlsx" class="btn btn-info">Exporter en Excel</a>
+        <a href="{% url 'pointofsale_import' %}" class="btn btn-warning">Importer un fichier Excel</a>
+    </div>
+
+    <!-- Table des points de vente -->
     <table class="table table-bordered">
         <thead>
             <tr>
@@ -15,18 +30,24 @@
             </tr>
         </thead>
         <tbody>
-            {% for pointofsale in pointofsales %}
-            <tr>
-                <td>{{ pointofsale.id }}</td>
-                <td><a href="{% url 'pointofsale_detail' pointofsale.pk %}">{{ pointofsale.nom }}</a></td>
-                <td>{{ pointofsale.type }}</td>
-                <td>{{ pointofsale.commune.nom }}</td>
-                <td>
-                    <a href="{% url 'pointofsale_update' pointofsale.pk %}" class="btn btn-warning btn-sm">Modifier</a>
-                    <a href="{% url 'pointofsale_delete' pointofsale.pk %}" class="btn btn-danger btn-sm">Supprimer</a>
-                </td>
-            </tr>
-            {% endfor %}
+            {% if pointofsales %}
+                {% for pointofsale in pointofsales %}
+                <tr>
+                    <td>{{ pointofsale.id }}</td>
+                    <td><a href="{% url 'pointofsale_detail' pointofsale.pk %}">{{ pointofsale.nom }}</a></td>
+                    <td>{{ pointofsale.type }}</td>
+                    <td>{{ pointofsale.commune.nom }}</td>
+                    <td>
+                        <a href="{% url 'pointofsale_update' pointofsale.pk %}" class="btn btn-warning btn-sm">Modifier</a>
+                        <a href="{% url 'pointofsale_delete' pointofsale.pk %}" class="btn btn-danger btn-sm">Supprimer</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            {% else %}
+                <tr>
+                    <td colspan="5" class="text-center">Aucun point de vente trouvé.</td>
+                </tr>
+            {% endif %}
         </tbody>
     </table>
 </div>

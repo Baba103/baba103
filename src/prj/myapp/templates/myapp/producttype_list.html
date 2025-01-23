@@ -3,28 +3,48 @@
 {% block content %}
 <div class="container mt-4">
     <h2>Liste des Types de Produits</h2>
-    <a href="{% url 'producttype_create' %}" class="btn btn-primary mb-3">Ajouter un Type de Produit</a>
+
+    <!-- Formulaire de recherche -->
+    <form method="get" class="d-flex mb-3">
+        <input type="text" name="q" class="form-control me-2" placeholder="Rechercher par nom ou catégorie" value="{{ query }}">
+        <button type="submit" class="btn btn-outline-primary">Rechercher</button>
+    </form>
+
+    <!-- Boutons d'action -->
+    <div class="mb-3">
+        <a href="{% url 'producttype_create' %}" class="btn btn-primary">Ajouter un Type de Produit</a>
+        <a href="{% url 'producttype_export' %}" class="btn btn-success">Exporter en Excel</a>
+        <a href="{% url 'producttype_import' %}" class="btn btn-warning">Importer un fichier Excel</a>
+    </div>
+
+    <!-- Tableau des types de produits -->
     <table class="table table-bordered">
         <thead>
             <tr>
                 <th>Code</th>
                 <th>Nom</th>
-                <th>Categorie</th>
+                <th>Catégorie</th>
                 <th>Actions</th>
             </tr>
         </thead>
         <tbody>
-            {% for producttype in producttypes %}
-            <tr>
-                <td>{{ producttype.id }}</td>
-                <td><a href="{% url 'producttype_detail' producttype.pk %}">{{ producttype.nom }}</a></td>
-                <td>{{ producttype.description }}</td>
-                <td>
-                    <a href="{% url 'producttype_update' producttype.pk %}" class="btn btn-warning btn-sm">Modifier</a>
-                    <a href="{% url 'producttype_delete' producttype.pk %}" class="btn btn-danger btn-sm">Supprimer</a>
-                </td>
-            </tr>
-            {% endfor %}
+            {% if producttypes %}
+                {% for producttype in producttypes %}
+                <tr>
+                    <td>{{ producttype.id }}</td>
+                    <td><a href="{% url 'producttype_detail' producttype.pk %}">{{ producttype.nom }}</a></td>
+                    <td>{{ producttype.description }}</td>
+                    <td>
+                        <a href="{% url 'producttype_update' producttype.pk %}" class="btn btn-warning btn-sm">Modifier</a>
+                        <a href="{% url 'producttype_delete' producttype.pk %}" class="btn btn-danger btn-sm">Supprimer</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            {% else %}
+                <tr>
+                    <td colspan="4" class="text-center">Aucun type de produit trouvé.</td>
+                </tr>
+            {% endif %}
         </tbody>
     </table>
 </div>

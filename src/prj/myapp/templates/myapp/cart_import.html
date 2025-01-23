@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Liste des Paniers</h2>
+
+    <!-- Formulaire de recherche -->
+    <form method="get" class="d-flex mb-3">
+        <input type="text" name="q" class="form-control me-2" placeholder="Rechercher par code ou nom" value="{{ query }}">
+        <button type="submit" class="btn btn-outline-primary">Rechercher</button>
+    </form>
+
+    <!-- Boutons Importer/Exporter et Ajouter -->
+    <div class="mb-3">
+        <a href="{% url 'cart_create' %}" class="btn btn-primary me-2">Ajouter un Panier</a>
+        <a href="{% url 'cart_export' %}" class="btn btn-success me-2">Exporter en Excel</a>
+        <a href="{% url 'cart_import' %}" class="btn btn-warning">Importer un fichier Excel</a>
+    </div>
+
+    <!-- Tableau des Paniers -->
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>Code</th>
+                <th>Nom</th>
+                <th>Description</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% if carts %}
+                {% for cart in carts %}
+                <tr>
+                    <td>{{ cart.code }}</td>
+                    <td>{{ cart.name }}</td>
+                    <td>{{ cart.description|default:"Aucune description" }}</td>
+                    <td>
+                        <a href="{% url 'cart_update' cart.pk %}" class="btn btn-warning btn-sm">Modifier</a>
+                        <a href="{% url 'cart_delete' cart.pk %}" class="btn btn-danger btn-sm">Supprimer</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            {% else %}
+                <tr>
+                    <td colspan="4" class="text-center">Aucun panier trouvé.</td>
+                </tr>
+            {% endif %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

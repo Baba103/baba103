@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Importer des Points de Vente</h2>
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <!-- Gestion des erreurs -->
+        {% if errors %}
+        <div class="alert alert-danger">
+            <strong>Erreurs détectées :</strong>
+            <ul>
+                {% for error in errors %}
+                <li>{{ error }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+
+        <!-- Champ d'importation -->
+        <div class="form-group mb-3">
+            <label for="file">Choisissez un fichier Excel :</label>
+            <input type="file" name="file" id="file" class="form-control" accept=".xlsx,.xls" required>
+        </div>
+
+        <!-- Boutons d'action -->
+        <div class="d-flex">
+            <button type="submit" class="btn btn-primary me-2">Importer</button>
+            <a href="{% url 'pointofsale_list' %}" class="btn btn-secondary">Retour à la liste</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

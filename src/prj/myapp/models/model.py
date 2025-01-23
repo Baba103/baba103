@@ -5,7 +5,7 @@ from django.db import models
 
 #  Modèle pour Wilaya (Région)
 class Wilaya(models.Model):
-    code = models.CharField(max_length=2, unique=True)
+    code = models.CharField(max_length=10, unique=True)
     name = models.CharField(max_length=252)
 
     def __str__(self):
@@ -14,18 +14,18 @@ class Wilaya(models.Model):
 # Modèle pour Moughataa (Subdivision d'une Wilaya)
 class Moughataa(models.Model):
     code = models.CharField(max_length=45, unique=True)
-    label = models.CharField(max_length=45)
+    label = models.CharField(max_length=100)
     wilaya = models.ForeignKey(Wilaya, on_delete=models.CASCADE)
 
     def __str__(self):
-        return self.label
+        return self.label   
     
 class Commune(models.Model):
     nom = models.CharField(max_length=100, unique=True)
     moughataa = models.ForeignKey(Moughataa, on_delete=models.CASCADE, related_name="communes")
 
     def __str__(self):
-        return f"{self.nom} ({self.moughataa.nom})"
+        return f"{self.nom} ({self.moughataa.label})"
     
 # ✅ Modèle Type de Produit
 class ProductType(models.Model):
@@ -51,7 +51,7 @@ class PointOfSale(models.Model):
     type = models.CharField(max_length=50, choices=[('Marché', 'Marché'), ('Supermarché', 'Supermarché'), ('Autre', 'Autre')])
     gps_lat = models.FloatField()
     gps_lon = models.FloatField()
-    commune = models.ForeignKey(Commune, on_delete=models.CASCADE, related_name="points_de_vente")
+    commune = models.ForeignKey(Commune, on_delete=models.CASCADE)
 
     def __str__(self):
         return self.nom
@@ -85,3 +85,17 @@ class CartProduct(models.Model):
 
     def __str__(self):
         return f"{self.produit.nom} dans {self.panier.nom} - {self.poids}%"
+
+
+from django.db import models
+from django.utils.timezone import now
+
+from django.db import models
+
+class INPC(models.Model):
+    mois = models.DateField()  # La date du mois pour lequel l'INPC est calculé
+    valeur = models.FloatField()  # La valeur calculée de l'INPC
+
+    def __str__(self):
+        return f"INPC {self.mois}: {self.valeur}"
+

@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Liste des INPC</h2>
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>Mois</th>
+                <th>Valeur</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for inpc in inpcs %}
+            <tr>
+                <td>{{ inpc.mois }}</td>
+                <td>{{ inpc.valeur }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

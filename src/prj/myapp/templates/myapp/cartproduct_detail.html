@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Détails du Produit dans le Panier</h2>
+    <ul class="list-group">
+        <li class="list-group-item"><strong>Produit :</strong> {{ cartproduct.product.name }}</li>
+        <li class="list-group-item"><strong>Panier :</strong> {{ cartproduct.cart.name }}</li>
+        <li class="list-group-item"><strong>Pondération :</strong> {{ cartproduct.weight }}%</li>
+        <li class="list-group-item"><strong>Date Début :</strong> {{ cartproduct.date_from }}</li>
+        <li class="list-group-item"><strong>Date Fin :</strong> {{ cartproduct.date_to|default:"En cours" }}</li>
+    </ul>
+    <a href="{% url 'cartproduct_list' %}" class="btn btn-secondary mt-3">Retour à la liste</a>
+    <a href="{% url 'cartproduct_update' cartproduct.pk %}" class="btn btn-warning mt-3">Modifier</a>
+    <a href="{% url 'cartproduct_delete' cartproduct.pk %}" class="btn btn-danger mt-3">Supprimer</a>
+</div>
+{% endblock %}

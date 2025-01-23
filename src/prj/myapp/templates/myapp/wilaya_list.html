@@ -3,7 +3,30 @@
 {% block content %}
 <div class="container mt-4">
     <h2>Liste des Wilayas</h2>
-    <a href="{% url 'wilaya_create' %}" class="btn btn-primary mb-3">Ajouter une Wilaya</a>
+
+    <!-- Barre de recherche -->
+    <form method="get" action="{% url 'wilaya_list' %}" class="mb-3 d-flex">
+        <input
+            type="text"
+            name="q"
+            class="form-control"
+            placeholder="Rechercher une Wilaya..."
+            value="{{ request.GET.q }}"
+        />
+        <button type="submit" class="btn btn-primary ms-2">
+            <i class="fas fa-search"></i> Rechercher
+        </button>
+    </form>
+
+    <!-- Boutons pour ajouter, exporter et importer -->
+    <div class="mb-3">
+        <a href="{% url 'wilaya_create' %}" class="btn btn-primary">Ajouter une Wilaya</a>
+        <a href="{% url 'wilaya_export' %}" class="btn btn-success">Exporter en CSV</a>
+        <a href="{% url 'wilaya_export' %}?format=xlsx" class="btn btn-info">Exporter en Excel</a>
+        <a href="{% url 'wilaya_import' %}" class="btn btn-warning">Importer un fichier Excel</a>
+    </div>
+
+    <!-- Tableau des Wilayas -->
     <table class="table table-bordered">
         <thead>
             <tr>
@@ -20,6 +43,12 @@
                 <td>
                     <a href="{% url 'wilaya_update' wilaya.pk %}" class="btn btn-warning btn-sm">Modifier</a>
                     <a href="{% url 'wilaya_delete' wilaya.pk %}" class="btn btn-danger btn-sm">Supprimer</a>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="3" class="text-center">
+                    Aucun résultat trouvé pour "{{ request.GET.q }}"
                 </td>
             </tr>
             {% endfor %}

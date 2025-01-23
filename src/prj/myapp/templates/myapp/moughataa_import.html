@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Importer des Moughataas</h2>
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="form-group">
+            <label for="file">Choisissez un fichier Excel :</label>
+            <input type="file" class="form-control" id="file" name="file" accept=".xlsx,.xls" required>
+        </div>
+        <button type="submit" class="btn btn-primary mt-3">Importer</button>
+        <a href="{% url 'moughataa_list' %}" class="btn btn-secondary mt-3">Annuler</a>
+    </form>
+
+    {% if errors %}
+    <div class="alert alert-danger mt-4">
+        <ul>
+            {% for error in errors %}
+            <li>{{ error }}</li>
+            {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

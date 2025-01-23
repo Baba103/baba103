@@ -3,7 +3,21 @@
 {% block content %}
 <div class="container mt-4">
     <h2>Liste des Produits</h2>
-    <a href="{% url 'product_create' %}" class="btn btn-primary mb-3">Ajouter un Produit</a>
+
+    <!-- Formulaire de recherche -->
+    <form method="get" class="d-flex mb-3">
+        <input type="text" name="q" class="form-control me-2" placeholder="Rechercher par nom ou unité de mesure" value="{{ query }}">
+        <button type="submit" class="btn btn-outline-primary">Rechercher</button>
+    </form>
+
+    <!-- Boutons d'action -->
+    <div class="mb-3">
+        <a href="{% url 'product_create' %}" class="btn btn-primary">Ajouter un Produit</a>
+        <a href="{% url 'product_export' %}" class="btn btn-success">Exporter en Excel</a>
+        <a href="{% url 'product_import' %}" class="btn btn-warning">Importer un fichier Excel</a>
+    </div>
+
+    <!-- Tableau des produits -->
     <table class="table table-bordered">
         <thead>
             <tr>
@@ -14,17 +28,23 @@
             </tr>
         </thead>
         <tbody>
-            {% for product in products %}
-            <tr>
-                <td>{{ product.id }}</td>
-                <td><a href="{% url 'product_detail' product.pk %}">{{ product.nom }}</a></td>
-                <td>{{ product.unite_mesure }}</td>
-                <td>
-                    <a href="{% url 'product_update' product.pk %}" class="btn btn-warning btn-sm">Modifier</a>
-                    <a href="{% url 'product_delete' product.pk %}" class="btn btn-danger btn-sm">Supprimer</a>
-                </td>
-            </tr>
-            {% endfor %}
+            {% if products %}
+                {% for product in products %}
+                <tr>
+                    <td>{{ product.id }}</td>
+                    <td><a href="{% url 'product_detail' product.pk %}">{{ product.nom }}</a></td>
+                    <td>{{ product.unite_mesure }}</td>
+                    <td>
+                        <a href="{% url 'product_update' product.pk %}" class="btn btn-warning btn-sm">Modifier</a>
+                        <a href="{% url 'product_delete' product.pk %}" class="btn btn-danger btn-sm">Supprimer</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            {% else %}
+                <tr>
+                    <td colspan="4" class="text-center">Aucun produit trouvé.</td>
+                </tr>
+            {% endif %}
         </tbody>
     </table>
 </div>

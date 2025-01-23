@@ -3,7 +3,21 @@
 {% block content %}
 <div class="container mt-4">
     <h2>Liste des Prix des Produits</h2>
-    <a href="{% url 'productprice_create' %}" class="btn btn-primary mb-3">Ajouter un Prix</a>
+
+    <!-- Formulaire de recherche -->
+    <form method="get" class="d-flex mb-3">
+        <input type="text" name="q" class="form-control me-2" placeholder="Rechercher par produit, point de vente ou prix" value="{{ query }}">
+        <button type="submit" class="btn btn-outline-primary">Rechercher</button>
+    </form>
+
+    <!-- Boutons Importer/Exporter -->
+    <div class="mb-3">
+        <a href="{% url 'product_create' %}" class="btn btn-primary">Ajouter un Produit</a>
+        <a href="{% url 'productprice_export' %}" class="btn btn-success me-2">Exporter en Excel</a>
+        <a href="{% url 'productprice_import' %}" class="btn btn-warning">Importer un fichier Excel</a>
+    </div>
+
+    <!-- Tableau des prix -->
     <table class="table table-bordered">
         <thead>
             <tr>
@@ -16,19 +30,25 @@
             </tr>
         </thead>
         <tbody>
-            {% for productprice in productprices %}
-            <tr>
-                <td>{{ productprice.produit.nom }}</td>
-                <td>{{ productprice.point_vente.nom }}</td>
-                <td>{{ productprice.valeur }} MRO</td>
-                <td>{{ productprice.date_from }}</td>
-                <td>{{ productprice.date_to|default:"En cours" }}</td>
-                <td>
-                    <a href="{% url 'productprice_update' productprice.pk %}" class="btn btn-warning btn-sm">Modifier</a>
-                    <a href="{% url 'productprice_delete' productprice.pk %}" class="btn btn-danger btn-sm">Supprimer</a>
-                </td>
-            </tr>
-            {% endfor %}
+            {% if productprices %}
+                {% for price in productprices %}
+                <tr>
+                    <td>{{ price.produit.nom }}</td>
+                    <td>{{ price.point_vente.nom }}</td>
+                    <td>{{ price.valeur }}</td>
+                    <td>{{ price.date_from }}</td>
+                    <td>{{ price.date_to|default:"En cours" }}</td>
+                    <td>
+                        <a href="{% url 'productprice_update' price.pk %}" class="btn btn-warning btn-sm">Modifier</a>
+                        <a href="{% url 'productprice_delete' price.pk %}" class="btn btn-danger btn-sm">Supprimer</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            {% else %}
+                <tr>
+                    <td colspan="6" class="text-center">Aucun prix trouvé.</td>
+                </tr>
+            {% endif %}
         </tbody>
     </table>
 </div>

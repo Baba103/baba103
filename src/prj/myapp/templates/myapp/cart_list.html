@@ -1,10 +1,51 @@
 {% extends "base.html" %}
+
 {% block content %}
-    <h2>Liste des Paniers</h2>
-    <ul>
-        {% for cart in carts %}
-            <li><a href="{% url 'cart_detail' cart.pk %}">{{ cart.nom }}</a></li>
-        {% endfor %}
-    </ul>
-    <a href="{% url 'cart_create' %}">Créer un Panier</a>
+<div class="container mt-4">
+    <h2>Liste des Produits dans les Paniers</h2>
+
+    <!-- Formulaire de recherche -->
+    <form method="get" class="d-flex mb-3">
+        <input type="text" name="q" class="form-control me-2" placeholder="Rechercher par produit, panier ou poids" value="{{ query }}">
+        <button type="submit" class="btn btn-outline-primary">Rechercher</button>
+    </form>
+
+    <!-- Boutons Import/Export -->
+    <div class="mb-3">
+        <a href="{% url 'product_create' %}" class="btn btn-primary">Ajouter un Produit</a>
+        <button class="btn btn-success" onclick="window.location.href='{% url 'cartproduct_export' %}'">Exporter en Excel</button>
+        <button class="btn btn-warning" onclick="window.location.href='{% url 'cartproduct_import' %}'">Importer un fichier Excel</button>
+    </div>
+
+    <!-- Tableau des produits -->
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Produit</th>
+                <th>Panier</th>
+                <th>Poids</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% if cartproducts %}
+                {% for cartproduct in cartproducts %}
+                <tr>
+                    <td>{{ cartproduct.produit.nom }}</td>
+                    <td>{{ cartproduct.panier.nom }}</td>
+                    <td>{{ cartproduct.poids }}</td>
+                    <td>
+                        <a href="{% url 'cartproduct_update' cartproduct.id %}" class="btn btn-warning btn-sm">Modifier</a>
+                        <a href="{% url 'cartproduct_delete' cartproduct.id %}" class="btn btn-danger btn-sm">Supprimer</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            {% else %}
+                <tr>
+                    <td colspan="4" class="text-center">Aucun produit trouvé.</td>
+                </tr>
+            {% endif %}
+        </tbody>
+    </table>
+</div>
 {% endblock %}

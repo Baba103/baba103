@@ -3,12 +3,35 @@
 {% block content %}
 <div class="container mt-4">
     <h2>Liste des Moughataas</h2>
-    <a href="{% url 'moughataa_create' %}" class="btn btn-primary mb-3">Ajouter une Moughataa</a>
+
+    <!-- Barre de recherche -->
+    <form method="get" action="{% url 'moughataa_list' %}" class="mb-3 d-flex">
+        <input
+            type="text"
+            name="q"
+            class="form-control"
+            placeholder="Rechercher une Moughataa..."
+            value="{{ request.GET.q }}"
+        />
+        <button type="submit" class="btn btn-primary ms-2">
+            <i class="fas fa-search"></i> Rechercher
+        </button>
+    </form>
+
+    <!-- Boutons pour ajouter, exporter et importer -->
+    <div class="mb-3">
+        <a href="{% url 'moughataa_create' %}" class="btn btn-primary">Ajouter une Moughataa</a>
+        <a href="{% url 'moughataa_export' %}" class="btn btn-success">Exporter en CSV</a>
+        <a href="{% url 'moughataa_export' %}?format=xlsx" class="btn btn-info">Exporter en Excel</a>
+        <a href="{% url 'moughataa_import' %}" class="btn btn-warning">Importer un fichier Excel</a>
+    </div>
+
+    <!-- Tableau des Moughataas -->
     <table class="table table-bordered">
         <thead>
             <tr>
                 <th>Code</th>
-                <th>Nom</th>
+                <th>Label</th>
                 <th>Wilaya</th>
                 <th>Actions</th>
             </tr>
@@ -22,6 +45,12 @@
                 <td>
                     <a href="{% url 'moughataa_update' moughataa.pk %}" class="btn btn-warning btn-sm">Modifier</a>
                     <a href="{% url 'moughataa_delete' moughataa.pk %}" class="btn btn-danger btn-sm">Supprimer</a>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="4" class="text-center">
+                    Aucun résultat trouvé pour "{{ request.GET.q }}"
                 </td>
             </tr>
             {% endfor %}
