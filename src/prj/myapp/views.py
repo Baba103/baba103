@@ -186,7 +186,7 @@ class CommuneDeleteView(LoginRequiredMixin,DeleteView):
     
 
 # 📍 Liste des Types de Produits
-class ProductTypeListView(ListView):
+class ProductTypeListView(LoginRequiredMixin,ListView):
     model = ProductType
     template_name = "myapp/producttype_list.html"
     context_object_name = "producttypes"
@@ -402,26 +402,26 @@ class CartProductListView(LoginRequiredMixin,ListView):
     
 
 # 📍 Détails d'un Produit dans un Panier
-class CartProductDetailView(DetailView):
+class CartProductDetailView(LoginRequiredMixin,DetailView):
     model = CartProduct
     template_name = "myapp/cartproduct_detail.html"
     context_object_name = "cartproduct"
 # 📍 Ajouter un Produit dans un Panier
-class CartProductCreateView(CreateView):
+class CartProductCreateView(LoginRequiredMixin,CreateView):
     model = CartProduct
     fields = '__all__'
     template_name = "myapp/cartproduct_form.html"
     success_url = reverse_lazy('cartproduct_list')
 
 # 📍 Modifier un Produit dans un Panier
-class CartProductUpdateView(UpdateView):
+class CartProductUpdateView(LoginRequiredMixin,UpdateView):
     model = CartProduct
     fields = '__all__'
     template_name = "myapp/cartproduct_form.html"
     success_url = reverse_lazy('cartproduct_list')
 
 # 📍 Supprimer un Produit dans un Panier
-class CartProductDeleteView(DeleteView):
+class CartProductDeleteView(LoginRequiredMixin,DeleteView):
     model = CartProduct
     template_name = "myapp/cartproduct_confirm_delete.html"
     success_url = reverse_lazy('cartproduct_list')
@@ -430,7 +430,7 @@ class CartProductDeleteView(DeleteView):
 
 
 # Exporter les données au format CSV
-class WilayaExportView(View):
+class WilayaExportView(LoginRequiredMixin,View):
     def get(self, request, *args, **kwargs):
         resource = WilayaResource()
         dataset = resource.export()
@@ -448,7 +448,7 @@ class WilayaExportView(View):
         return response
 
 
-class MoughataaExportView(View):
+class MoughataaExportView(LoginRequiredMixin,View):
     def get(self, request, *args, **kwargs):
         resource = MoughataaResource()
         dataset = resource.export()
@@ -471,7 +471,7 @@ class MoughataaExportView(View):
 
 from myapp.resources import CommuneResource
 
-class CommuneExportView(View):
+class CommuneExportView(LoginRequiredMixin,View):
     def get(self, request, *args, **kwargs):
         resource = CommuneResource()
         dataset = resource.export()
@@ -491,7 +491,7 @@ class CommuneExportView(View):
 
         return response
 
-class PointOfSaleExportView(View):
+class PointOfSaleExportView(LoginRequiredMixin,View):
     def get(self, request, *args, **kwargs):
         resource = PointOfSaleResource()  # Remplacez par votre resource pour PointOfSale
         dataset = resource.export()
@@ -514,7 +514,7 @@ class PointOfSaleExportView(View):
 
 from .resources import ProductTypeResource
 
-class ProductTypeExportView(View):
+class ProductTypeExportView(LoginRequiredMixin,View):
     def get(self, request, *args, **kwargs):
         resource = ProductTypeResource()  # Classe resource pour ProductType
         dataset = resource.export()
@@ -527,7 +527,7 @@ class ProductTypeExportView(View):
         response['Content-Disposition'] = 'attachment; filename="product_types.xlsx"'
         return response
     
-class ProductExportView(View):
+class ProductExportView(LoginRequiredMixin, View):
     def get(self, request, *args, **kwargs):
         resource = ProductResource()  # Classe resource pour Product
         dataset = resource.export()
@@ -542,7 +542,7 @@ class ProductExportView(View):
 
 from .resources import ProductPriceResource
 
-class ProductPriceExportView(View):
+class ProductPriceExportView(LoginRequiredMixin, View):
     def get(self, request, *args, **kwargs):
         resource = ProductPriceResource()  # Utilisation de la classe resource
         dataset = resource.export()
@@ -557,7 +557,7 @@ class ProductPriceExportView(View):
 from django.http import HttpResponse
 from .resources import CartResource
 
-class CartExportView(View):
+class CartExportView(LoginRequiredMixin, View):
     def get(self, request, *args, **kwargs):
         resource = CartResource()  # Utilisation de la classe resource
         dataset = resource.export()
@@ -571,13 +571,14 @@ class CartExportView(View):
 
 
 # 📤 Exporter CartProduct en Excel
-class CartProductExportView(View):
+class CartProductExportView(LoginRequiredMixin, View):
     def get(self, request, *args, **kwargs):
         resource = CartProductResource()
         dataset = resource.export()
         response = HttpResponse(dataset.xlsx, content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
         response['Content-Disposition'] = 'attachment; filename="cartproducts.xlsx"'
         return response
+
 
 from django.shortcuts import render
 from django.http import HttpResponseRedirect
@@ -633,7 +634,7 @@ class WilayaImportView(LoginRequiredMixin, View):
 
 
 
-class MoughataaImportView(View):
+class MoughataaImportView(LoginRequiredMixin, View):
     def get(self, request, *args, **kwargs):
         # Affiche le formulaire pour importer un fichier
         return render(request, "myapp/moughataa_import.html")
@@ -691,7 +692,7 @@ from myapp.resources import CommuneResource
 
 
 
-class CommuneImportView(View):
+class CommuneImportView(LoginRequiredMixin , View):
     def get(self, request, *args, **kwargs):
         # Affiche le formulaire pour importer un fichier
         return render(request, "myapp/commune_import.html")
@@ -756,9 +757,95 @@ class CommuneImportView(View):
 
 from django.http import HttpResponseRedirect
 from .resources import PointOfSaleResource
+from .resources import ProductResource
+
+from django.shortcuts import render
+from django.http import HttpResponseRedirect
+from openpyxl import load_workbook
+from myapp.resources import ProductResource
+from myapp.models import ProductType
+from tablib import Dataset
+
+from django.shortcuts import render
+from django.http import HttpResponseRedirect
+from openpyxl import load_workbook
+from tablib import Dataset
+from myapp.resources import ProductResource
+from myapp.models import ProductType, Product
+
+from django.shortcuts import render
+from django.http import HttpResponseRedirect
+from openpyxl import load_workbook
+from tablib import Dataset
+from myapp.models import ProductType
+from myapp.resources import ProductResource
+
+class ProductImportView(LoginRequiredMixin , View):
+    def get(self, request, *args, **kwargs):
+        return render(request, "myapp/product_import.html")
+
+    def post(self, request, *args, **kwargs):
+        file = request.FILES.get("file")
+        if not file:
+            return render(request, "myapp/product_import.html", {"errors": ["Aucun fichier n'a été fourni."]})
+
+        # Vérifier l'extension
+        if not (file.name.endswith('.xls') or file.name.endswith('.xlsx')):
+            return render(request, "myapp/product_import.html", {"errors": ["Seuls les fichiers Excel sont acceptés."]})
+
+        try:
+            # Charger le fichier Excel
+            workbook = load_workbook(file)
+            sheet = workbook.active
+
+            # Mapping des types de produit (nom -> ID)
+            product_type_mapping = {pt.nom: pt.id for pt in ProductType.objects.all()}
+
+            dataset = Dataset()
+            dataset.headers = ['nom', 'description', 'type_produit', 'unite_mesure']
+
+            errors = []
+            for row_index, row in enumerate(sheet.iter_rows(min_row=2, values_only=True), start=2):
+                try:
+                    nom, description, type_produit_nom, unite_mesure = row
+
+                    # Valider et mapper le type de produit
+                    if type_produit_nom not in product_type_mapping:
+                        errors.append(f"Ligne {row_index}: Type de produit '{type_produit_nom}' inconnu.")
+                        continue
+
+                    type_produit_id = product_type_mapping[type_produit_nom]
+                    dataset.append([nom, description, type_produit_id, unite_mesure])
+
+                except Exception as e:
+                    errors.append(f"Ligne {row_index}: Erreur - {str(e)}")
+
+            if errors:
+                return render(request, "myapp/product_import.html", {"errors": errors})
+
+            # Importation des données
+            resource = ProductResource()
+            result = resource.import_data(dataset, dry_run=True)
+
+            if result.has_errors():
+                return render(request, "myapp/product_import.html", {"errors": result.row_errors})
+
+            resource.import_data(dataset, dry_run=False)
+            return HttpResponseRedirect("/products/")
+
+        except Exception as e:
+            return render(request, "myapp/product_import.html", {"errors": [f"Erreur lors de la lecture du fichier : {str(e)}"]})
 
 
-class PointOfSaleImportView(View):
+from django.shortcuts import render
+from django.http import HttpResponseRedirect
+from openpyxl import load_workbook
+from tablib import Dataset
+from myapp.resources import PointOfSaleResource
+from myapp.models import Commune
+from django.views import View
+
+class PointOfSaleImportView(LoginRequiredMixin , View):
     def get(self, request, *args, **kwargs):
         # Affiche le formulaire pour importer un fichier
         return render(request, "myapp/pointofsale_import.html")
@@ -780,11 +867,28 @@ class PointOfSaleImportView(View):
             # Préparation des données pour l'importation
             resource = PointOfSaleResource()
             dataset = Dataset()
-            dataset.headers = ['name', 'location', 'contact']  # Colonnes attendues
+            dataset.headers = ['nom', 'type', 'commune', 'gps_lat', 'gps_lon']  # Colonnes attendues
 
-            for row in sheet.iter_rows(min_row=2, values_only=True):
-                if all(row):  # Vérifie que toutes les colonnes sont remplies
-                    dataset.append(row)
+            row_num = 1  # Pour traquer la ligne en cas d'erreur
+            for row in sheet.iter_rows(min_row=2, values_only=True):  # Ignorer l'en-tête
+                row_num += 1
+                try:
+                    # Extraire les données de chaque ligne
+                    nom, type, commune_name, gps_lat, gps_lon = row
+
+                    # Vérifier si la commune existe
+                    commune = Commune.objects.get(nom=commune_name)
+
+                    # Ajouter les données au dataset
+                    dataset.append([nom, type, commune.pk, gps_lat, gps_lon])
+                except Commune.DoesNotExist:
+                    return render(request, "myapp/pointofsale_import.html", {
+                        "errors": [f"Ligne {row_num}: La commune '{commune_name}' n'existe pas dans la base de données."]
+                    })
+                except ValueError as e:
+                    return render(request, "myapp/pointofsale_import.html", {
+                        "errors": [f"Ligne {row_num}: Erreur - {str(e)}"]
+                    })
 
             # Simulation d'importation avec dry_run=True
             result = resource.import_data(dataset, dry_run=True)
@@ -796,11 +900,12 @@ class PointOfSaleImportView(View):
                 return render(request, "myapp/pointofsale_import.html", {"errors": result.row_errors})
 
         except Exception as e:
-            return render(request, "myapp/pointofsale_import.html", {"errors": [f"Erreur lors de la lecture du fichier Excel : {str(e)}"]})
+            return render(request, "myapp/pointofsale_import.html", {
+                "errors": [f"Erreur lors de la lecture du fichier Excel : {str(e)}"]
+            })
 
 
-
-class ProductTypeImportView(View):
+class ProductTypeImportView(LoginRequiredMixin , View):
     def get(self, request, *args, **kwargs):
         # Affiche le formulaire pour importer un fichier
         return render(request, "myapp/producttype_import.html")
@@ -822,7 +927,7 @@ class ProductTypeImportView(View):
             # Préparation des données pour l'importation
             resource = ProductTypeResource()
             dataset = Dataset()
-            dataset.headers = ['name', 'description']  # Colonnes attendues
+            dataset.headers = ['nom', 'description']  # Colonnes attendues
 
             for row in sheet.iter_rows(min_row=2, values_only=True):
                 if all(row):  # Vérifie que toutes les colonnes sont remplies
@@ -842,45 +947,9 @@ class ProductTypeImportView(View):
 
 
 
-class ProductImportView(View):
-    def get(self, request, *args, **kwargs):
-        return render(request, "myapp/product_import.html")
-
-    def post(self, request, *args, **kwargs):
-        file = request.FILES.get('file')
-        if not file:
-            return render(request, "myapp/product_import.html", {"errors": ["Aucun fichier n'a été fourni."]})
-
-        if not (file.name.endswith('.xls') or file.name.endswith('.xlsx')):
-            return render(request, "myapp/product_import.html", {"errors": ["Seuls les fichiers Excel sont acceptés."]})
-
-        try:
-            workbook = load_workbook(file)
-            sheet = workbook.active
-
-            resource = ProductResource()
-            dataset = Dataset()
-            dataset.headers = ['code', 'nom', 'categorie']  # Colonnes attendues
-
-            for row in sheet.iter_rows(min_row=2, values_only=True):
-                if all(row):
-                    dataset.append(row)
-
-            result = resource.import_data(dataset, dry_run=True)
-            if not result.has_errors():
-                resource.import_data(dataset, dry_run=False)
-                return HttpResponseRedirect('/products/')
-            else:
-                return render(request, "myapp/product_import.html", {"errors": result.row_errors})
-
-        except Exception as e:
-            return render(request, "myapp/product_import.html", {"errors": [f"Erreur : {str(e)}"]})
-
 
 from django.http import HttpResponseRedirect
 from .resources import ProductPriceResource
-
-
 class ProductPriceImportView(View):
     def get(self, request, *args, **kwargs):
         return render(request, "myapp/productprice_import.html")
@@ -897,14 +966,41 @@ class ProductPriceImportView(View):
             workbook = load_workbook(file)
             sheet = workbook.active
 
-            resource = ProductPriceResource()
             dataset = Dataset()
             dataset.headers = ['produit', 'point_vente', 'valeur', 'date_from', 'date_to']  # Colonnes attendues
 
             for row in sheet.iter_rows(min_row=2, values_only=True):
-                if all(row):
-                    dataset.append(row)
+                try:
+                    produit_nom, point_vente_nom, valeur, date_from, date_to = row
 
+                    # Vérifier si le produit existe
+                    produits = Product.objects.filter(nom=produit_nom)
+                    if produits.exists():
+                        produit = produits.first()  # Sélectionner le premier produit trouvé
+                    else:
+                        return render(request, "myapp/productprice_import.html", {
+                            "errors": [f"Le produit '{produit_nom}' n'existe pas."]
+                        })
+
+                    # Vérifier si le point de vente existe
+                    points_vente = PointOfSale.objects.filter(nom=point_vente_nom)
+                    if points_vente.exists():
+                        point_vente = points_vente.first()  # Sélectionner le premier point de vente trouvé
+                    else:
+                        return render(request, "myapp/productprice_import.html", {
+                            "errors": [f"Le point de vente '{point_vente_nom}' n'existe pas."]
+                        })
+
+                    # Ajouter la ligne au dataset
+                    dataset.append([produit.id, point_vente.id, valeur, date_from, date_to])
+
+                except Exception as e:
+                    return render(request, "myapp/productprice_import.html", {
+                        "errors": [f"Erreur lors du traitement de la ligne : {str(e)}"]
+                    })
+
+            # Simulation d'importation avec dry_run=True
+            resource = ProductPriceResource()
             result = resource.import_data(dataset, dry_run=True)
             if not result.has_errors():
                 resource.import_data(dataset, dry_run=False)
@@ -916,10 +1012,23 @@ class ProductPriceImportView(View):
             return render(request, "myapp/productprice_import.html", {"errors": [f"Erreur : {str(e)}"]})
 
 
-
+from django.shortcuts import render
+from django.http import HttpResponseRedirect
+from openpyxl import load_workbook
+from tablib import Dataset
+from .models import Cart
 from .resources import CartResource
 
-class CartImportView(View):
+
+from django.shortcuts import render
+from django.http import HttpResponseRedirect
+from openpyxl import load_workbook
+from tablib import Dataset
+from .models import Cart
+from .resources import CartResource
+
+
+class CartImportView(LoginRequiredMixin , View):
     def get(self, request, *args, **kwargs):
         return render(request, "myapp/cart_import.html")
 
@@ -928,33 +1037,56 @@ class CartImportView(View):
         if not file:
             return render(request, "myapp/cart_import.html", {"errors": ["Aucun fichier n'a été fourni."]})
 
+        # Vérification du format du fichier
         if not (file.name.endswith('.xls') or file.name.endswith('.xlsx')):
             return render(request, "myapp/cart_import.html", {"errors": ["Seuls les fichiers Excel sont acceptés."]})
 
         try:
+            # Charger le fichier Excel
             workbook = load_workbook(file)
             sheet = workbook.active
 
+            # Vérifier les colonnes attendues
+            required_columns = ['nom', 'description']
+            detected_columns = [cell.value for cell in sheet[1]]  # Première ligne pour les en-têtes
+            missing_columns = [col for col in required_columns if col not in detected_columns]
+
+            if missing_columns:
+                return render(request, "myapp/cart_import.html", {
+                    "errors": [
+                        f"Le fichier Excel est invalide. Colonnes manquantes : {', '.join(missing_columns)}",
+                        f"Colonnes détectées : {', '.join(detected_columns or [])}"
+                    ]
+                })
+
+            # Préparer les données pour l'importation
             resource = CartResource()
             dataset = Dataset()
-            dataset.headers = ['code', 'name', 'description']  # Colonnes attendues
+            dataset.headers = required_columns
 
+            # Lire les données du fichier Excel à partir de la deuxième ligne
             for row in sheet.iter_rows(min_row=2, values_only=True):
-                if all(row):
-                    dataset.append(row)
+                if row[0]:  # Vérifie que le champ 'nom' est renseigné
+                    dataset.append([row[0], row[1]])
 
+            # Simulation de l'importation avec dry_run=True
             result = resource.import_data(dataset, dry_run=True)
             if not result.has_errors():
+                # Importation réelle
                 resource.import_data(dataset, dry_run=False)
                 return HttpResponseRedirect('/carts/')
             else:
                 return render(request, "myapp/cart_import.html", {"errors": result.row_errors})
 
         except Exception as e:
-            return render(request, "myapp/cart_import.html", {"errors": [f"Erreur : {str(e)}"]})
+            return render(request, "myapp/cart_import.html", {"errors": [f"Erreur lors de la lecture du fichier Excel : {str(e)}"]})
 
-# 📥 Importer CartProduct depuis un fichier Excel
-class CartProductImportView(View):
+
+from django.shortcuts import render, redirect
+from tablib import Dataset
+from .models import Product, Cart, CartProduct
+
+class CartProductImportView(LoginRequiredMixin , View):
     def get(self, request, *args, **kwargs):
         return render(request, "myapp/cartproduct_import.html")
 
@@ -964,7 +1096,7 @@ class CartProductImportView(View):
             return render(request, "myapp/cartproduct_import.html", {"errors": ["Aucun fichier n'a été fourni."]})
 
         try:
-            # Charger le fichier Excel
+            # Charger les données du fichier Excel
             dataset = Dataset()
             imported_data = dataset.load(file.read(), format='xlsx')
 
@@ -981,75 +1113,240 @@ class CartProductImportView(View):
                     ]
                 })
 
-            resource = CartProductResource()
-            result = resource.import_data(dataset, dry_run=True)
+            errors = []  # Liste des erreurs
+            for i, row in enumerate(imported_data.dict, start=2):  # Démarre à la 2ème ligne pour ignorer l'en-tête
+                try:
+                    # Recherche du produit
+                    produits = Product.objects.filter(nom=row['produit'])
+                    if produits.count() == 1:
+                        produit = produits.first()
+                    elif produits.count() > 1:
+                        # Si plusieurs produits trouvés
+                        error_message = (
+                            f"Ligne {i}: Plusieurs produits trouvés pour le nom '{row['produit']}'. "
+                            f"Détails: {', '.join([f'ID: {p.id}, Nom: {p.nom}' for p in produits])}"
+                        )
+                        errors.append(error_message)
+                        continue
+                    else:
+                        # Aucun produit trouvé
+                        errors.append(f"Ligne {i}: Produit '{row['produit']}' introuvable.")
+                        continue
 
-            if not result.has_errors():
-                resource.import_data(dataset, dry_run=False)
-                return HttpResponseRedirect('/cartproducts/')
-            else:
-                return render(request, "myapp/cartproduct_import.html", {"errors": result.row_errors})
+                    # Recherche du panier
+                    panier = Cart.objects.filter(nom=row['panier']).first()
+                    if not panier:
+                        errors.append(f"Ligne {i}: Panier '{row['panier']}' introuvable.")
+                        continue
+
+                    # Création ou mise à jour de la relation produit-panier
+                    CartProduct.objects.update_or_create(
+                        produit=produit,
+                        panier=panier,
+                        defaults={
+                            'poids': row['poids'],
+                        }
+                    )
+                except Exception as e:
+                    errors.append(f"Ligne {i}: Erreur inattendue : {str(e)}")
+
+            if errors:
+                return render(request, "myapp/cartproduct_import.html", {"errors": errors})
+
+            # Redirection en cas de succès
+            return redirect('cartproduct_list')
 
         except Exception as e:
             return render(request, "myapp/cartproduct_import.html", {"errors": [f"Erreur lors de l'importation : {str(e)}"]})
 
 
 
-from django.shortcuts import render, redirect
 from django.views import View
-from .models import ProductPrice, CartProduct, INPC
+from django.shortcuts import render, redirect
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib import messages
+from django.db.models import Avg
 from datetime import datetime
-from django.db.models import Sum
+from .models import Product, ProductPrice, Cart, CartProduct
 
-class CalculateINPCView(View):
-    def get(self, request, *args, **kwargs):
-        return render(request, "myapp/calculate_inpc.html")
 
-    def post(self, request, *args, **kwargs):
-        # Récupérer le mois sélectionné
-        mois_str = request.POST.get("mois")  # Format attendu: 'YYYY-MM'
+class INPCCalculateView(LoginRequiredMixin, View):
+    """
+    Vue pour calculer l'INPC en utilisant les données existantes.
+    """
+
+    def calculate_inpc_for_date(self, date):
+        """
+        Fonction utilitaire pour calculer l'INPC pour une date donnée.
+        """
+        # Étape 1 : Calcul du prix moyen des produits pour une date donnée
+        product_avg_prices = {}
+        for product in Product.objects.all():
+            avg_price = ProductPrice.objects.filter(
+                produit=product,
+                date_from__lte=date,
+                date_to__gte=date
+            ).aggregate(Avg('valeur'))['valeur__avg']
+
+            if avg_price is not None:
+                product_avg_prices[product.id] = avg_price
+
+        if not product_avg_prices:
+            return 0  # Aucun produit ou prix trouvé
+
+        # Étape 2 : Calcul de l'INPC pour chaque panier
+        cart_inpc = {}
+        for cart in Cart.objects.all():
+            total_weighted_price = 0
+            total_weight = 0
+
+            cart_products = CartProduct.objects.filter(
+                panier=cart,
+                date_from__lte=date,
+                date_to__gte=date
+            )
+
+            for cart_product in cart_products:
+                product_id = cart_product.produit.id
+                if product_id in product_avg_prices:
+                    total_weighted_price += product_avg_prices[product_id] * cart_product.poids
+                    total_weight += cart_product.poids
+
+            # INPC pour le panier
+            if total_weight > 0:
+                cart_inpc[cart.id] = total_weighted_price / total_weight
+            else:
+                cart_inpc[cart.id] = 0
+
+        if not cart_inpc:
+            return 0  # Aucun panier trouvé
+
+        # Étape 3 : Calcul de l'INPC global
+        return sum(cart_inpc.values()) / len(cart_inpc)
+
+    def get(self, request):
+        """
+        Affiche un formulaire permettant de sélectionner l'année et le mois.
+        """
+        current_year = datetime.now().year
+        return render(request, 'myapp/inpc_form.html', {'current_year': current_year})
+
+    def post(self, request):
+        """
+        Traite le formulaire soumis par l'utilisateur pour calculer l'INPC.
+        """
         try:
-            mois = datetime.strptime(mois_str, "%Y-%m")
-        except ValueError:
-            return render(request, "myapp/calculate_inpc.html", {"errors": ["Format du mois invalide."]})
+            # Récupération des données du formulaire
+            month = int(request.POST.get('month'))
+            year = int(request.POST.get('year'))
+            date = datetime(year, month, 1)
 
-        # Récupérer les prix des produits actifs pendant le mois donné
-        prix_produits = ProductPrice.objects.filter(
-            date_from__lte=mois,
-            date_to__gte=mois
-        )
+            # Année de base (2019)
+            base_year = 2019
+            base_date = datetime(base_year, 1, 1)
 
-        # Récupérer les poids associés aux produits dans les paniers
-        produits_dans_paniers = CartProduct.objects.filter(
-            produit__in=[p.produit for p in prix_produits]
-        )
+            # Calcul INPC pour l'année de base
+            base_inpc = self.calculate_inpc_for_date(base_date)
 
-        # Calculer l'INPC
-        numerateur = 0
-        denominateur = 0
+            # Calcul INPC pour la période actuelle
+            current_inpc = self.calculate_inpc_for_date(date)
 
-        for prix in prix_produits:
-            # Trouver le poids associé au produit dans les paniers
-            poids = produits_dans_paniers.filter(produit=prix.produit).aggregate(Sum("poids"))["poids__sum"] or 0
-            numerateur += prix.valeur * poids
-            denominateur += poids
+            # Normalisation de l'INPC par rapport à l'année de base
+            if base_inpc > 0:
+                inpc_global = (current_inpc / base_inpc) * 100
+            else:
+                inpc_global = 0
 
-        if denominateur == 0:
-            return render(request, "myapp/calculate_inpc.html", {"errors": ["Impossible de calculer l'INPC (dénominateur nul)."]})
+            # Préparer les données pour le template
+            context = {
+                'inpc': inpc_global,
+                'month': month,
+                'year': year,
+            }
+            return render(request, 'myapp/inpc_result.html', context)
 
-        inpc_valeur = numerateur / denominateur
+        except Exception as e:
+            messages.error(request, f"Erreur lors du calcul de l'INPC : {str(e)}")
+            return redirect('calculate_inpc')
 
-        # Sauvegarder l'INPC dans la base de données
-        inpc, created = INPC.objects.get_or_create(mois=mois, defaults={"valeur": inpc_valeur})
-        if not created:
-            inpc.valeur = inpc_valeur
-            inpc.save()
 
-        return redirect("inpc_list")
+from django.shortcuts import render
+from django.views import View
+from django.db.models import Avg
+from datetime import datetime
+from .models import ProductPrice, CartProduct, Product, Cart
 
-from django.views.generic import ListView
-
-class INPCListView(ListView):
-    model = INPC
+class InpcListView(LoginRequiredMixin , View):
     template_name = "myapp/inpc_list.html"
-    context_object_name = "inpcs"
+
+    def get(self, request, *args, **kwargs):
+        try:
+            # Obtenir l'année et le mois actuels
+            year = request.GET.get('year', datetime.now().year)
+            month = request.GET.get('month', datetime.now().month)
+
+            # Convertir en entiers
+            year = int(year)
+            month = int(month)
+
+            # Année de base (2019)
+            base_year = 2019
+            base_date = datetime(base_year, 1, 1)
+
+            # Calculer l'INPC pour la période actuelle
+            date = datetime(year, month, 1)
+            base_inpc = self.calculate_inpc(base_date)
+            current_inpc = self.calculate_inpc(date)
+
+            # Normaliser l'INPC par rapport à l'année de base
+            inpc_global = (current_inpc / base_inpc * 100) if base_inpc > 0 else 0
+
+            context = {
+                'inpc_global': inpc_global,
+                'current_year': year,
+                'current_month': month,
+            }
+            return render(request, self.template_name, context)
+
+        except Exception as e:
+            context = {'error': f"Erreur lors du calcul de l'INPC : {str(e)}"}
+            return render(request, self.template_name, context)
+
+    def calculate_inpc(self, date):
+        # Calcul du prix moyen pour chaque produit
+        product_avg_prices = {}
+        for product in Product.objects.all():
+            avg_price = ProductPrice.objects.filter(
+                produit=product,
+                date_from__lte=date,
+                date_to__gte=date
+            ).aggregate(Avg('valeur'))['valeur__avg']
+
+            if avg_price is not None:
+                product_avg_prices[product.id] = avg_price
+
+        if not product_avg_prices:
+            return 0
+
+        # Calcul de l'INPC pour chaque panier
+        cart_inpc = {}
+        for cart in Cart.objects.all():
+            total_weighted_price = 0
+            total_weight = 0
+
+            cart_products = CartProduct.objects.filter(
+                panier=cart,
+                date_from__lte=date,
+                date_to__gte=date
+            )
+
+            for cart_product in cart_products:
+                product_id = cart_product.produit.id
+                if product_id in product_avg_prices:
+                    total_weighted_price += product_avg_prices[product_id] * cart_product.poids
+                    total_weight += cart_product.poids
+
+            cart_inpc[cart.id] = total_weighted_price / total_weight if total_weight > 0 else 0
+
+        # Calcul INPC global
+        return sum(cart_inpc.values()) / len(cart_inpc) if cart_inpc else 0

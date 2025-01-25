@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-ighi#_@d7)4f#1ba(=z(xrtx$ze_-pbmsu*t+p$p7mp#vlw_70
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -82,7 +82,7 @@ DATABASES = {
         'NAME': 'django_db',
         "USER": "django_user",
         "PASSWORD": "django_password",
-        "HOST": "mydb",
+        "HOST": "mydb_23103",
         "PORT": "3306",
         "CHARSET": "UTF8",
         'OPTIONS': {
@@ -135,3 +135,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 LOGIN_REDIRECT_URL = '/'
 
 LOGOUT_REDIRECT_URL = '/'
+CSRF_TRUSTED_ORIGINS = [
+    "https://138.201.52.29:25103",
+    "http://138.201.52.29:25103"
+]

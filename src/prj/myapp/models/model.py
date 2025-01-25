@@ -29,7 +29,7 @@ class Commune(models.Model):
     
 # ✅ Modèle Type de Produit
 class ProductType(models.Model):
-    nom = models.CharField(max_length=100, unique=True)
+    nom = models.CharField(max_length=100)
     description = models.TextField(blank=True, null=True)
 
     def __str__(self):
@@ -37,7 +37,7 @@ class ProductType(models.Model):
 
 # ✅ Modèle Produit
 class Product(models.Model):
-    nom = models.CharField(max_length=100, unique=True)
+    nom = models.CharField(max_length=100)
     description = models.TextField(blank=True, null=True)
     type_produit = models.ForeignKey(ProductType, on_delete=models.CASCADE, related_name="produits")
     unite_mesure = models.CharField(max_length=50)
@@ -48,7 +48,7 @@ class Product(models.Model):
 # ✅ Modèle Point de Vente
 class PointOfSale(models.Model):
     nom = models.CharField(max_length=100, unique=True)
-    type = models.CharField(max_length=50, choices=[('Marché', 'Marché'), ('Supermarché', 'Supermarché'), ('Autre', 'Autre')])
+    type = models.CharField(max_length=50)
     gps_lat = models.FloatField()
     gps_lon = models.FloatField()
     commune = models.ForeignKey(Commune, on_delete=models.CASCADE)
@@ -80,22 +80,23 @@ class CartProduct(models.Model):
     produit = models.ForeignKey(Product, on_delete=models.CASCADE, related_name="paniers")
     panier = models.ForeignKey(Cart, on_delete=models.CASCADE, related_name="produits")
     poids = models.FloatField()
-    date_from = models.DateField()
+    date_from = models.DateField(null=True, blank=True)
     date_to = models.DateField(null=True, blank=True)
 
-    def __str__(self):
-        return f"{self.produit.nom} dans {self.panier.nom} - {self.poids}%"
+    class Meta:
+        unique_together = ('produit', 'panier')  # Empêche un produit d'être ajouté plusieurs fois au même panier
+
 
 
 from django.db import models
 from django.utils.timezone import now
 
+
 from django.db import models
 
-class INPC(models.Model):
-    mois = models.DateField()  # La date du mois pour lequel l'INPC est calculé
-    valeur = models.FloatField()  # La valeur calculée de l'INPC
+class Inpc(models.Model):
+    mois = models.DateField()
+    valeur = models.FloatField()
 
     def __str__(self):
-        return f"INPC {self.mois}: {self.valeur}"
-
+        return f"INPC {self.date} - {self.value}"

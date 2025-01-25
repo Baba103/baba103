@@ -1,8 +1,8 @@
 services:
-  djangoapp:
+  djangoapp_23103:
     build:
       context: .
-    container_name: djangoapp
+    container_name: djangoapp_23103
     command:  sh -c "cd prj && python manage.py makemigrations && python manage.py migrate && python manage.py runserver 0.0.0.0:8000"
     volumes:
       - ./src:/app
@@ -10,12 +10,12 @@ services:
     ports:
       - "127.0.0.1:23103:8000"
     depends_on:
-      mydb:
+      mydb_23103:
         condition: service_healthy
 
-  mydb:
+  mydb_23103:
     image: mysql
-    container_name: mydb
+    container_name: mydb_23103
     restart: always
     environment:
       MYSQL_ROOT_PASSWORD: root_password

@@ -1,12 +1,13 @@
 from django.urls import path
 from openpyxl import load_workbook
 import openpyxl
-from .views import CalculateINPCView
 from django.urls import path
-from .views import CalculateINPCView, INPCListView
+from .views import InpcListView  # Assurez-vous que cette vue existe
+
 from . import views
+from .views import INPCCalculateView  # Import de la vue
 from .views import  WilayaListView, WilayaDetailView, WilayaCreateView, WilayaUpdateView, WilayaDeleteView,MoughataaListView, MoughataaDetailView, MoughataaCreateView, MoughataaUpdateView, MoughataaDeleteView, CommuneListView, CommuneDetailView, CommuneCreateView, CommuneUpdateView, CommuneDeleteView, ProductTypeListView, ProductTypeDetailView, ProductTypeCreateView, ProductTypeUpdateView, ProductTypeDeleteView, ProductListView, ProductDetailView, ProductCreateView, ProductUpdateView, ProductDeleteView, PointOfSaleListView, PointOfSaleDetailView, PointOfSaleCreateView, PointOfSaleUpdateView, PointOfSaleDeleteView, ProductPriceListView, ProductPriceDetailView, ProductPriceCreateView, ProductPriceUpdateView, ProductPriceDeleteView, CartListView, CartDetailView, CartCreateView, CartUpdateView, CartDeleteView, CartProductListView, CartProductDetailView, CartProductCreateView, CartProductUpdateView, CartProductDeleteView, WilayaExportView, WilayaImportView , home
-from .views import MoughataaImportView,MoughataaExportView , CommuneImportView, CommuneExportView,PointOfSaleExportView,PointOfSaleImportView,ProductTypeImportView,ProductTypeExportView,ProductExportView,ProductImportView,ProductPriceExportView,ProductPriceImportView,CartExportView,CartImportView,CartProductExportView,CartProductImportView,INPCListView,INPC
+from .views import MoughataaImportView,MoughataaExportView , CommuneImportView, CommuneExportView,PointOfSaleExportView,PointOfSaleImportView,ProductTypeImportView,ProductTypeExportView,ProductExportView,ProductImportView,ProductPriceExportView,ProductPriceImportView,CartExportView,CartImportView,CartProductExportView,CartProductImportView 
 urlpatterns = [
      path('', views.home, name='home'),  # ✅ Corrige ici
     #  Routes pour Wilaya
@@ -96,10 +97,9 @@ urlpatterns = [
     path('cartproducts/<int:pk>/delete/', CartProductDeleteView.as_view(), name='cartproduct_delete'),
     path('cartproducts/export/', CartProductExportView.as_view(), name='cartproduct_export'),
     path('cartproducts/import/', CartProductImportView.as_view(), name='cartproduct_import'),
-    path("calculate_inpc/", CalculateINPCView.as_view(), name="calculate_inpc"),
-    path("inpc_list/", INPCListView.as_view(), name="inpc_list"),
-
- 
+    path('calculate_inpc/', INPCCalculateView.as_view(), name='calculate_inpc'),
+    path('inpc/', InpcListView.as_view(), name='inpc_list'),  # Définition de la route pour 'inpc_list'
+   
  
 
     

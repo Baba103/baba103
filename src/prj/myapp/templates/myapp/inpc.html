@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+
+{% block title %}
+    Calcul de l'INPC
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1>Calcul de l'Indice National des Prix à la Consommation (INPC)</h1>
+
+    <!-- Formulaire de sélection de l'année et du mois -->
+    <form method="get" class="d-flex mb-4">
+        <div class="me-2">
+            <label for="annee">Année :</label>
+            <select id="annee" name="annee" class="form-select">
+                {% for annee in annees_disponibles %}
+                <option value="{{ annee }}" {% if annee == annee_courante %}selected{% endif %}>{{ annee }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="me-2">
+            <label for="mois">Mois :</label>
+            <select id="mois" name="mois" class="form-select">
+                {% for mois in range(1, 13) %}
+                <option value="{{ mois }}" {% if mois == mois_courant %}selected{% endif %}>
+                    {{ mois|date:"F" }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+        <button type="submit" class="btn btn-primary align-self-end">Calculer</button>
+    </form>
+
+    <!-- Résultats par groupe -->
+    <h2>INPC par groupe</h2>
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>Groupe</th>
+                <th>INPC</th>
+                <th>Produits Calculés</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for groupe in inpc_par_groupe %}
+            <tr>
+                <td>{{ groupe.Groupe }}</td>
+                <td>{{ groupe.INPC|floatformat:2 }}%</td>
+                <td>{{ groupe.Produits Calculés }}</td>
+            </tr>
+            {% endfor %}
+            {% if not inpc_par_groupe %}
+            <tr>
+                <td colspan="3" class="text-center">Aucune donnée disponible pour l'année et le mois sélectionnés.</td>
+            </tr>
+            {% endif %}
+        </tbody>
+    </table>
+
+    <!-- Résultat global -->
+    <h2>INPC Global</h2>
+    <p>
+        L'INPC global pour {{ mois_courant|date:"F" }} {{ annee_courante }} est de :
+        <strong>{{ inpc_global|default_if_none:"Non calculé" }}</strong>
+    </p>
+</div>
+{% endblock %}
