@@ -113,6 +113,8 @@ urlpatterns = [
     path("charts/bar-all-product-prices/", bar_chart_all_products_prices, name="bar_all_product_prices"),
     #p#ath("charts/pie-product-categories/", pie_chart_product_categories, name="pie_product_categories"),
     path("charts/pie-product-categories/", pie_product_categories, name="pie_product_categories"),
+    path("charts/bar-product-prices/", bar_chart_product_prices, name="bar_product_prices"),
+    path("charts/bar-all-products/", bar_chart_all_products_prices, name="bar_all_products_prices"),
 
 
 

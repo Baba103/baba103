@@ -1391,10 +1391,12 @@ from django.shortcuts import render
 from django.http import JsonResponse
 from django.db.models import Avg
 from .models import ProductPrice, Product
+@login_required
 
 def dashboard_view(request):
     products = Product.objects.all()
     return render(request, "myapp/dashboard.html", {"products": products})
+@login_required
 
 def get_product_price_data(request):
     product_id = request.GET.get("product_id")
@@ -1431,6 +1433,7 @@ from .models import ProductPrice, Product
 from django.http import JsonResponse
 from django.db.models import Avg
 from .models import ProductPrice, Product
+@login_required
 
 def bar_chart_product_prices(request):
     """
@@ -1461,13 +1464,16 @@ from django.http import JsonResponse
 from django.db.models import Avg
 from .models import ProductPrice
 
+@login_required
 def bar_chart_all_products_prices(request):
     """
-    Vue qui génère les données pour un Bar Chart montrant l'évolution des prix moyens
-    de tous les produits par mois.
+    Vue qui génère les données pour un Bar Chart montrant l'évolution des prix moyens mensuels pour tous les produits.
     """
+    from django.db.models import Avg
+
     prices = (
-        ProductPrice.objects.values("date_from__year", "date_from__month")
+        ProductPrice.objects
+        .values("date_from__year", "date_from__month")
         .annotate(avg_price=Avg("valeur"))
         .order_by("date_from__year", "date_from__month")
     )
@@ -1486,6 +1492,7 @@ from django.http import JsonResponse
 from django.db.models import Count
 from .models import Product, ProductType
 
+@login_required
 def pie_product_categories(request):
     """
     Génère les données pour un Pie Chart montrant la répartition des produits par catégorie.
