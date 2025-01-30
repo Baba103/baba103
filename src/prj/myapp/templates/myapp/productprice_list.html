@@ -4,35 +4,41 @@
 <div class="container mt-4">
     <h2>Liste des Prix des Produits</h2>
 
-    <!-- Formulaire de recherche -->
-    <form method="get" class="d-flex mb-3">
-        <input type="text" name="q" class="form-control me-2" placeholder="Rechercher par produit, point de vente ou prix" value="{{ query }}">
-        <button type="submit" class="btn btn-outline-primary">Rechercher</button>
-    </form>
+    <!-- Formulaire de suppression en masse -->
+    <form method="post" id="bulk-delete-form">
+        {% csrf_token %}
 
-    <!-- Boutons Importer/Exporter -->
-    <div class="mb-3">
-        <a href="{% url 'productprice_create' %}" class="btn btn-primary">Ajouter un Produit</a>
-        <a href="{% url 'productprice_export' %}" class="btn btn-success me-2">Exporter en Excel</a>
-        <a href="{% url 'productprice_import' %}" class="btn btn-warning">Importer un fichier Excel</a>
-    </div>
+        <!-- Barre de recherche -->
+        <div class="d-flex mb-3">
+            <input type="text" name="q" class="form-control me-2" placeholder="Rechercher par produit, point de vente ou prix" value="{{ query }}">
+            <button type="submit" class="btn btn-outline-primary">Rechercher</button>
+        </div>
 
-    <!-- Tableau des prix -->
-    <table class="table table-bordered">
-        <thead>
-            <tr>
-                <th>Produit</th>
-                <th>Point de Vente</th>
-                <th>Prix</th>
-                <th>Date Début</th>
-                <th>Date Fin</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% if productprices %}
+        <!-- Boutons d'action -->
+        <div class="mb-3">
+            <a href="{% url 'productprice_create' %}" class="btn btn-primary">Ajouter un Produit</a>
+            <a href="{% url 'productprice_import' %}" class="btn btn-warning">Importer un fichier Excel</a>
+            <a href="{% url 'productprice_export' %}" class="btn btn-success">Exporter en Excel</a>
+            <button type="button" class="btn btn-danger" id="bulk-delete-btn" disabled>Supprimer la sélection</button>
+        </div>
+
+        <!-- Tableau -->
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th><input type="checkbox" id="select-all"></th>
+                    <th>Produit</th>
+                    <th>Point de Vente</th>
+                    <th>Prix</th>
+                    <th>Date Début</th>
+                    <th>Date Fin</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
                 {% for price in productprices %}
                 <tr>
+                    <td><input type="checkbox" class="select-item" name="selected_productprices" value="{{ price.pk }}"></td>
                     <td>{{ price.produit.nom }}</td>
                     <td>{{ price.point_vente.nom }}</td>
                     <td>{{ price.valeur }}</td>
@@ -44,12 +50,46 @@
                     </td>
                 </tr>
                 {% endfor %}
-            {% else %}
-                <tr>
-                    <td colspan="6" class="text-center">Aucun prix trouvé.</td>
-                </tr>
-            {% endif %}
-        </tbody>
-    </table>
+            </tbody>
+        </table>
+    </form>
 </div>
+
+<!-- Script JavaScript -->
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const selectAllCheckbox = document.getElementById("select-all");
+        const itemCheckboxes = document.querySelectorAll(".select-item");
+        const deleteBtn = document.getElementById("bulk-delete-btn");
+        const bulkDeleteForm = document.getElementById("bulk-delete-form");
+
+        // Gérer la sélection globale
+        selectAllCheckbox.addEventListener("change", function() {
+            itemCheckboxes.forEach(checkbox => {
+                checkbox.checked = selectAllCheckbox.checked;
+            });
+            toggleDeleteButton();
+        });
+
+        // Gérer la sélection individuelle
+        itemCheckboxes.forEach(checkbox => {
+            checkbox.addEventListener("change", function() {
+                toggleDeleteButton();
+            });
+        });
+
+        function toggleDeleteButton() {
+            const anyChecked = Array.from(itemCheckboxes).some(checkbox => checkbox.checked);
+            deleteBtn.disabled = !anyChecked;
+        }
+
+        // Suppression en masse
+        deleteBtn.addEventListener("click", function() {
+            if (confirm("Voulez-vous vraiment supprimer les prix sélectionnés ?")) {
+                bulkDeleteForm.submit();
+            }
+        });
+    });
+</script>
+
 {% endblock %}

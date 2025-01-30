@@ -1,0 +1,209 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2 class="text-center">Tableau de Bord des Prix</h2>
+
+    <!-- Sélection du Produit et de la Période -->
+    <div class="row mb-3">
+        <div class="col-md-6">
+            <label for="product-select">Sélectionnez un produit :</label>
+            <select id="product-select" class="form-control">
+                <option value="">-- Choisissez un produit --</option>
+                {% for product in products %}
+                    <option value="{{ product.id }}">{{ product.nom }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="col-md-6">
+            <label for="timeframe-select">Regrouper par :</label>
+            <select id="timeframe-select" class="form-control">
+                <option value="monthly">Mensuelle</option>
+                <option value="yearly">Annuelle</option>
+                <option value="daily">Journalière (désactivé)</option>
+            </select>
+        </div>
+    </div>
+
+    <!-- 📈 Graphique d'Évolution des Prix -->
+    <div class="chart-container mt-4" style="position: relative; height: 50vh; width: 80%;">
+        <canvas id="lineChart"></canvas>
+    </div>
+
+    <!-- 📊 Graphiques en Barres -->
+    <div class="row mt-5">
+        <div class="col-md-6">
+            <h4 class="text-center">Évolution des Prix Moyens (Produit Sélectionné)</h4>
+            <div class="chart-container" style="position: relative; height: 40vh; width: 100%;">
+                <canvas id="barChartProduct"></canvas>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <h4 class="text-center">Évolution Moyenne des Prix de Tous les Produits</h4>
+            <div class="chart-container" style="position: relative; height: 40vh; width: 100%;">
+                <canvas id="barChartAllProducts"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- 🥧 Graphique en Camembert -->
+    <div class="container mt-5">
+        <h2 class="text-center">Répartition des Produits par Catégorie</h2>
+        <div class="chart-container mt-3" style="position: relative; height: 40vh; width: 50%;">
+            <canvas id="pieChartCategories"></canvas>
+        </div>
+    </div>
+</div>
+
+<!-- 📌 Inclure Charts.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const productSelect = document.getElementById("product-select");
+    const timeframeSelect = document.getElementById("timeframe-select");
+    const ctxLine = document.getElementById("lineChart").getContext("2d");
+    let lineChartInstance = null;
+    
+    function updateLineChart(productId, aggregation) {
+        if (!productId || aggregation === "daily") {
+            if (lineChartInstance) lineChartInstance.destroy();
+            return;
+        }
+
+        fetch(`/get-product-price-data/?product_id=${productId}&aggregation=${aggregation}`)
+            .then(response => response.json())
+            .then(data => {
+                if (lineChartInstance) {
+                    lineChartInstance.destroy();
+                }
+                lineChartInstance = new Chart(ctxLine, {
+                    type: "line",
+                    data: {
+                        labels: data.dates,
+                        datasets: [{
+                            label: `Évolution du prix de ${data.product_name}`,
+                            data: data.prices,
+                            borderColor: "#007bff",
+                            backgroundColor: "rgba(54, 162, 235, 0.2)",
+                            pointRadius: 5,
+                            pointBackgroundColor: "#ff0000",
+                            fill: true,
+                            tension: 0.3
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { labels: { font: { size: 14 } } }
+                        },
+                        scales: {
+                            x: { ticks: { autoSkip: true, maxTicksLimit: 10 } }
+                        }
+                    }
+                });
+            });
+    }
+
+    productSelect.addEventListener("change", function () {
+        updateLineChart(this.value, timeframeSelect.value);
+        updateBarChartProduct(this.value);
+    });
+
+    timeframeSelect.addEventListener("change", function () {
+        updateLineChart(productSelect.value, this.value);
+    });
+
+    // 📊 Charger les données pour le Bar Chart - Produit Sélectionné
+    function updateBarChartProduct(productId) {
+        if (!productId) return;
+
+        fetch(`/charts/bar-product-prices/?product_id=${productId}`)
+            .then(response => response.json())
+            .then(data => {
+                const ctxBarProduct = document.getElementById("barChartProduct").getContext("2d");
+                new Chart(ctxBarProduct, {
+                    type: "bar",
+                    data: {
+                        labels: data.dates,
+                        datasets: [{
+                            label: `Prix Moyen Mensuel (${data.product_name})`,
+                            data: data.prices,
+                            backgroundColor: "rgba(75, 192, 192, 0.6)"
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: { beginAtZero: true }
+                        }
+                    }
+                });
+            });
+    }
+
+    // 📊 Charger les données pour le Bar Chart - Tous les Produits
+    fetch("/charts/bar-all-products/")
+        .then(response => response.json())
+        .then(data => {
+            const ctxBarAll = document.getElementById("barChartAllProducts").getContext("2d");
+            new Chart(ctxBarAll, {
+                type: "bar",
+                data: {
+                    labels: data.dates,
+                    datasets: [{
+                        label: "Prix Moyen Mensuel (Tous les Produits)",
+                        data: data.prices,
+                        backgroundColor: "rgba(255, 99, 132, 0.6)"
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: { beginAtZero: true }
+                    }
+                }
+            });
+        });
+
+    // 🥧 Charger les données pour le Pie Chart - Répartition des Produits par Catégorie
+    fetch("/charts/pie-product-categories/")
+        .then(response => response.json())
+        .then(data => {
+            const ctxPie = document.getElementById("pieChartCategories").getContext("2d");
+            new Chart(ctxPie, {
+                type: "pie",
+                data: {
+                    labels: data.labels,
+                    datasets: [{
+                        label: "Nombre de Produits",
+                        data: data.values,
+                        backgroundColor: [
+                            "rgba(255, 99, 132, 0.6)",
+                            "rgba(54, 162, 235, 0.6)",
+                            "rgba(255, 206, 86, 0.6)",
+                            "rgba(75, 192, 192, 0.6)",
+                            "rgba(153, 102, 255, 0.6)",
+                            "rgba(255, 159, 64, 0.6)"
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: "right" }
+                    }
+                }
+            });
+        });
+});
+</script>
+
+{% endblock %}

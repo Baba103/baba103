@@ -12,6 +12,8 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from openpyxl import load_workbook
 import openpyxl
 from .resources import CartProductResource
+from django.http import JsonResponse
+
 
 from django.views.generic import ListView, DetailView, CreateView, DeleteView, UpdateView
 from django.urls import reverse_lazy
@@ -184,26 +186,30 @@ class CommuneDeleteView(LoginRequiredMixin,DeleteView):
     success_url = reverse_lazy('commune_list')
     
     
-
-# 📍 Liste des Types de Produits
-class ProductTypeListView(LoginRequiredMixin,ListView):
+# 📍 Liste des Types de Produits avec Recherche et Suppression en masse
+class ProductTypeListView(LoginRequiredMixin, ListView):
     model = ProductType
     template_name = "myapp/producttype_list.html"
     context_object_name = "producttypes"
 
     def get_queryset(self):
+        """Gère la recherche par nom ou catégorie"""
         queryset = super().get_queryset()
-        query = self.request.GET.get("q")  # Récupère le terme de recherche
+        query = self.request.GET.get("q")
         if query:
             queryset = queryset.filter(
-                Q(nom__icontains=query) | Q(description__icontains=query)
-            )  # Recherche par nom ou catégorie
+                Q(nom__icontains=query) |
+                Q(categorie__icontains=query)
+            )
         return queryset
 
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context["query"] = self.request.GET.get("q", "")  # Ajoute la requête au contexte
-        return context
+    def post(self, request, *args, **kwargs):
+        """Gère la suppression en masse"""
+        selected_producttypes = request.POST.getlist('selected_producttypes')
+        if selected_producttypes:
+            ProductType.objects.filter(id__in=selected_producttypes).delete()
+        return redirect('producttype_list')
+
 
 
 # 📍 Détails d'un Type de Produit
@@ -281,11 +287,18 @@ class ProductDeleteView(LoginRequiredMixin,DeleteView):
     template_name = "myapp/product_confirm_delete.html"
     success_url = reverse_lazy('product_list')
 
-# 📍 Liste des Points de Vente
-class PointOfSaleListView(LoginRequiredMixin,ListView):
+# 📍 Liste des Points de Vente avec suppression multiple
+class PointOfSaleListView(LoginRequiredMixin, ListView):
     model = PointOfSale
     template_name = "myapp/pointofsale_list.html"
     context_object_name = "pointofsales"
+
+    def post(self, request, *args, **kwargs):
+        selected_pointofsales = request.POST.getlist('selected_pointofsales')  # Récupérer les IDs sélectionnés
+        if selected_pointofsales:
+            PointOfSale.objects.filter(id__in=selected_pointofsales).delete()
+        return redirect('pointofsale_list')
+
 
 # 📍 Détails d'un Point de Vente
 class PointOfSaleDetailView(LoginRequiredMixin,DetailView):
@@ -351,6 +364,11 @@ class CartListView(LoginRequiredMixin,ListView):
     model = Cart
     template_name = "myapp/cart_list.html"
     context_object_name = "carts"
+    def post(self, request, *args, **kwargs):
+        selected_carts = request.POST.getlist('selected_carts')  # Récupérer les IDs sélectionnés
+        if selected_carts:
+            Cart.objects.filter(id__in=selected_carts).delete()
+        return redirect('cart_list')
 
 # 📍 Détails d'un Panier
 class CartDetailView(LoginRequiredMixin,DetailView):
@@ -379,26 +397,31 @@ class CartDeleteView(LoginRequiredMixin,DeleteView):
     success_url = reverse_lazy('cart_list')
 
 # 📍 Liste des Produits dans un Panier
-class CartProductListView(LoginRequiredMixin,ListView):
+class CartProductListView(LoginRequiredMixin, ListView):
     model = CartProduct
     template_name = "myapp/cartproduct_list.html"
     context_object_name = "cartproducts"
-    
-    def get(self, request, *args, **kwargs):
-        query = request.GET.get('q')  # Recherche par produit, panier ou poids
-        cartproducts = CartProduct.objects.all()
 
+    def get_queryset(self):
+        """Gère la recherche par produit, panier ou poids"""
+        queryset = super().get_queryset()
+        query = self.request.GET.get("q")
         if query:
-            cartproducts = cartproducts.filter(
+            queryset = queryset.filter(
                 Q(produit__nom__icontains=query) |
                 Q(panier__nom__icontains=query) |
                 Q(poids__icontains=query)
             )
+        return queryset
 
-        return render(request, self.template_name, {
-            "cartproducts": cartproducts,
-            "query": query,
-        })
+    def post(self, request, *args, **kwargs):
+        """Gère la suppression en masse"""
+        selected_cartproducts = request.POST.getlist('selected_cartproducts')
+        if selected_cartproducts:
+            CartProduct.objects.filter(id__in=selected_cartproducts).delete()
+        return redirect('cartproduct_list')
+
+
     
 
 # 📍 Détails d'un Produit dans un Panier
@@ -1085,8 +1108,11 @@ class CartImportView(LoginRequiredMixin , View):
 from django.shortcuts import render, redirect
 from tablib import Dataset
 from .models import Product, Cart, CartProduct
+from datetime import datetime
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.views import View
 
-class CartProductImportView(LoginRequiredMixin , View):
+class CartProductImportView(LoginRequiredMixin, View):
     def get(self, request, *args, **kwargs):
         return render(request, "myapp/cartproduct_import.html")
 
@@ -1101,7 +1127,7 @@ class CartProductImportView(LoginRequiredMixin , View):
             imported_data = dataset.load(file.read(), format='xlsx')
 
             # Vérifier les colonnes nécessaires
-            required_columns = ['produit', 'panier', 'poids']
+            required_columns = ['produit', 'panier', 'poids', 'date_from', 'date_to']
             detected_columns = dataset.headers
             missing_cols = [col for col in required_columns if col not in detected_columns]
 
@@ -1121,15 +1147,9 @@ class CartProductImportView(LoginRequiredMixin , View):
                     if produits.count() == 1:
                         produit = produits.first()
                     elif produits.count() > 1:
-                        # Si plusieurs produits trouvés
-                        error_message = (
-                            f"Ligne {i}: Plusieurs produits trouvés pour le nom '{row['produit']}'. "
-                            f"Détails: {', '.join([f'ID: {p.id}, Nom: {p.nom}' for p in produits])}"
-                        )
-                        errors.append(error_message)
+                        errors.append(f"Ligne {i}: Plusieurs produits trouvés pour '{row['produit']}'.")
                         continue
                     else:
-                        # Aucun produit trouvé
                         errors.append(f"Ligne {i}: Produit '{row['produit']}' introuvable.")
                         continue
 
@@ -1139,12 +1159,27 @@ class CartProductImportView(LoginRequiredMixin , View):
                         errors.append(f"Ligne {i}: Panier '{row['panier']}' introuvable.")
                         continue
 
+                    # Vérification et conversion des dates
+                    try:
+                        date_from = datetime.strptime(row['date_from'], "%Y-%m-%d").date()
+                        date_to = datetime.strptime(row['date_to'], "%Y-%m-%d").date()
+                    except ValueError:
+                        errors.append(f"Ligne {i}: Format de date invalide pour '{row['date_from']}' ou '{row['date_to']}'.")
+                        continue
+
+                    # Vérifier que date_to est après date_from
+                    if date_to < date_from:
+                        errors.append(f"Ligne {i}: La date de fin '{row['date_to']}' est antérieure à la date de début '{row['date_from']}'.")
+                        continue
+
                     # Création ou mise à jour de la relation produit-panier
                     CartProduct.objects.update_or_create(
                         produit=produit,
                         panier=panier,
                         defaults={
                             'poids': row['poids'],
+                            'date_from': date_from,
+                            'date_to': date_to
                         }
                     )
                 except Exception as e:
@@ -1153,7 +1188,6 @@ class CartProductImportView(LoginRequiredMixin , View):
             if errors:
                 return render(request, "myapp/cartproduct_import.html", {"errors": errors})
 
-            # Redirection en cas de succès
             return redirect('cartproduct_list')
 
         except Exception as e:
@@ -1350,3 +1384,117 @@ class InpcListView(LoginRequiredMixin , View):
 
         # Calcul INPC global
         return sum(cart_inpc.values()) / len(cart_inpc) if cart_inpc else 0
+    
+    
+#Charts
+from django.shortcuts import render
+from django.http import JsonResponse
+from django.db.models import Avg
+from .models import ProductPrice, Product
+
+def dashboard_view(request):
+    products = Product.objects.all()
+    return render(request, "myapp/dashboard.html", {"products": products})
+
+def get_product_price_data(request):
+    product_id = request.GET.get("product_id")
+    aggregation = request.GET.get("aggregation", "monthly")  # Valeur par défaut = mensuelle
+
+    if not product_id:
+        return JsonResponse({"dates": [], "prices": [], "product_name": "Sélectionner un produit"})
+
+    prices = ProductPrice.objects.filter(produit_id=product_id)
+
+    if aggregation == "monthly":
+        prices = prices.values("date_from__year", "date_from__month").annotate(avg_price=Avg("valeur")).order_by("date_from__year", "date_from__month")
+        data = {
+            "dates": [f"{p['date_from__year']}-{p['date_from__month']:02d}" for p in prices],
+            "prices": [p["avg_price"] for p in prices],
+        }
+    elif aggregation == "yearly":
+        prices = prices.values("date_from__year").annotate(avg_price=Avg("valeur")).order_by("date_from__year")
+        data = {
+            "dates": [str(p["date_from__year"]) for p in prices],
+            "prices": [p["avg_price"] for p in prices],
+        }
+    else:
+        return JsonResponse({"dates": [], "prices": [], "product_name": "Aucune donnée"})
+
+    data["product_name"] = Product.objects.get(id=product_id).nom if prices else "Produit inconnu"
+    return JsonResponse(data)
+
+
+
+from django.http import JsonResponse
+from django.db.models import Avg
+from .models import ProductPrice, Product
+from django.http import JsonResponse
+from django.db.models import Avg
+from .models import ProductPrice, Product
+
+def bar_chart_product_prices(request):
+    """
+    Vue qui génère les données pour un Bar Chart montrant l'évolution des prix moyens par mois.
+    """
+    product_id = request.GET.get("product_id")
+
+    if not product_id:
+        return JsonResponse({"dates": [], "prices": [], "product_name": "Sélectionner un produit"})
+
+    # Filtrer les prix du produit sélectionné
+    prices = (
+        ProductPrice.objects.filter(produit_id=product_id)
+        .values("date_from__year", "date_from__month")
+        .annotate(avg_price=Avg("valeur"))
+        .order_by("date_from__year", "date_from__month")
+    )
+
+    data = {
+        "dates": [f"{p['date_from__year']}-{p['date_from__month']:02d}" for p in prices],
+        "prices": [p["avg_price"] for p in prices],
+        "product_name": Product.objects.get(id=product_id).nom if prices else "Produit inconnu",
+    }
+
+    return JsonResponse(data)
+
+from django.http import JsonResponse
+from django.db.models import Avg
+from .models import ProductPrice
+
+def bar_chart_all_products_prices(request):
+    """
+    Vue qui génère les données pour un Bar Chart montrant l'évolution des prix moyens
+    de tous les produits par mois.
+    """
+    prices = (
+        ProductPrice.objects.values("date_from__year", "date_from__month")
+        .annotate(avg_price=Avg("valeur"))
+        .order_by("date_from__year", "date_from__month")
+    )
+
+    data = {
+        "dates": [f"{p['date_from__year']}-{p['date_from__month']:02d}" for p in prices],
+        "prices": [p["avg_price"] for p in prices],
+    }
+
+    return JsonResponse(data)
+
+from django.http import JsonResponse
+from django.db.models import Count
+from .models import Product, ProductType  # Assurez-vous que ProductType est bien défini
+from django.http import JsonResponse
+from django.db.models import Count
+from .models import Product, ProductType
+
+def pie_product_categories(request):
+    """
+    Génère les données pour un Pie Chart montrant la répartition des produits par catégorie.
+    """
+    categories = ProductType.objects.annotate(count=Count("produits"))
+    
+    data = {
+        "labels": [category.nom for category in categories],
+        "values": [category.count for category in categories],
+    }
+
+    return JsonResponse(data)

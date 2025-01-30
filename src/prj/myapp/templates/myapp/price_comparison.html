@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Comparaison des prix</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        h1 {
+            color: #333;
+        }
+        canvas {
+            max-width: 800px;
+            margin: 20px auto;
+        }
+    </style>
+</head>
+<body>
+    <h1>Comparaison des prix pour {{ product.nom }}</h1>
+    {% if datasets %}
+        <canvas id="priceChart" width="400" height="200"></canvas>
+    {% else %}
+        <p>Aucune donnée disponible pour ce produit.</p>
+    {% endif %}
+
+    <script>
+        {% if datasets %}
+            const ctx = document.getElementById('priceChart').getContext('2d');
+            const priceChart = new Chart(ctx, {
+                type: 'line',  // Graphique en ligne
+                data: {
+                    labels: {{ labels|safe }},  // Dates
+                    datasets: {{ datasets|safe }}  // Données des points de vente
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        },
+                        title: {
+                            display: true,
+                            text: 'Évolution des prix par point de vente'
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: false,  // Commencer l'axe Y à partir de 0
+                            title: {
+                                display: true,
+                                text: 'Prix (MRO)'
+                            }
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Date'
+                            }
+                        }
+                    }
+                }
+            });
+        {% endif %}
+    </script>
+</body>
+</html>

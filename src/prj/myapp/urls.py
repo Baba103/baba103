@@ -3,13 +3,15 @@ from openpyxl import load_workbook
 import openpyxl
 from django.urls import path
 from .views import InpcListView  # Assurez-vous que cette vue existe
+from .views import dashboard_view,get_product_price_data,bar_chart_product_prices,bar_chart_all_products_prices,pie_product_categories
 
 from . import views
 from .views import INPCCalculateView  # Import de la vue
 from .views import  WilayaListView, WilayaDetailView, WilayaCreateView, WilayaUpdateView, WilayaDeleteView,MoughataaListView, MoughataaDetailView, MoughataaCreateView, MoughataaUpdateView, MoughataaDeleteView, CommuneListView, CommuneDetailView, CommuneCreateView, CommuneUpdateView, CommuneDeleteView, ProductTypeListView, ProductTypeDetailView, ProductTypeCreateView, ProductTypeUpdateView, ProductTypeDeleteView, ProductListView, ProductDetailView, ProductCreateView, ProductUpdateView, ProductDeleteView, PointOfSaleListView, PointOfSaleDetailView, PointOfSaleCreateView, PointOfSaleUpdateView, PointOfSaleDeleteView, ProductPriceListView, ProductPriceDetailView, ProductPriceCreateView, ProductPriceUpdateView, ProductPriceDeleteView, CartListView, CartDetailView, CartCreateView, CartUpdateView, CartDeleteView, CartProductListView, CartProductDetailView, CartProductCreateView, CartProductUpdateView, CartProductDeleteView, WilayaExportView, WilayaImportView , home
 from .views import MoughataaImportView,MoughataaExportView , CommuneImportView, CommuneExportView,PointOfSaleExportView,PointOfSaleImportView,ProductTypeImportView,ProductTypeExportView,ProductExportView,ProductImportView,ProductPriceExportView,ProductPriceImportView,CartExportView,CartImportView,CartProductExportView,CartProductImportView 
 urlpatterns = [
-     path('', views.home, name='home'),  # ✅ Corrige ici
+    path("", dashboard_view, name="home"),  # 🏠 Redirige l'accueil vers le dashboard
+    path("dashboard/", dashboard_view, name="dashboard"),
     #  Routes pour Wilaya
     path('wilayas/', WilayaListView.as_view(), name='wilaya_list'),
     path('wilayas/<int:pk>/', WilayaDetailView.as_view(), name='wilaya_detail'),
@@ -75,6 +77,7 @@ urlpatterns = [
     path('productprices/<int:pk>/delete/', ProductPriceDeleteView.as_view(), name='productprice_delete'),
     path('productprices/export/', ProductPriceExportView.as_view(), name='productprice_export'),
     path('productprices/import/', ProductPriceImportView.as_view(), name='productprice_import'),
+    
 
 
     
@@ -99,8 +102,23 @@ urlpatterns = [
     path('cartproducts/import/', CartProductImportView.as_view(), name='cartproduct_import'),
     path('calculate_inpc/', INPCCalculateView.as_view(), name='calculate_inpc'),
     path('inpc/', InpcListView.as_view(), name='inpc_list'),  # Définition de la route pour 'inpc_list'
-   
- 
+    #path('price-evolution/<int:product_id>/<int:point_of_sale_id>/', views.price_evolution, name='price_evolution'),
+    #path('price-comparison/<int:product_id>/', views.price_comparison, name='price_comparison'),
+    path("dashboard/", dashboard_view, name="dashboard"),
+    #path("chart-data/", get_chart_data, name="chart_data"),
+    path("get-product-price-data/", get_product_price_data, name="get_product_price_data"),
+    #path("charts/pie-product-prices/", pie_chart_data, name="pie_product_prices"),
+    #path("charts/bar-product-prices/", bar_chart_data, name="bar_product_prices"),
+    path("charts/bar-product-prices/", bar_chart_product_prices, name="bar_product_prices"),
+    path("charts/bar-all-product-prices/", bar_chart_all_products_prices, name="bar_all_product_prices"),
+    #p#ath("charts/pie-product-categories/", pie_chart_product_categories, name="pie_product_categories"),
+    path("charts/pie-product-categories/", pie_product_categories, name="pie_product_categories"),
+
+
+
+
+
+
 
     
 ]

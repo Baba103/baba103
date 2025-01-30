@@ -47,7 +47,7 @@ class Product(models.Model):
 
 # ✅ Modèle Point de Vente
 class PointOfSale(models.Model):
-    nom = models.CharField(max_length=100, unique=True)
+    nom = models.CharField(max_length=100)
     type = models.CharField(max_length=50)
     gps_lat = models.FloatField()
     gps_lon = models.FloatField()
@@ -82,9 +82,6 @@ class CartProduct(models.Model):
     poids = models.FloatField()
     date_from = models.DateField(null=True, blank=True)
     date_to = models.DateField(null=True, blank=True)
-
-    class Meta:
-        unique_together = ('produit', 'panier')  # Empêche un produit d'être ajouté plusieurs fois au même panier
 
 
 

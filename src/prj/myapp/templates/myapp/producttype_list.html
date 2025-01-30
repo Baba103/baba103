@@ -10,42 +10,51 @@
         <button type="submit" class="btn btn-outline-primary">Rechercher</button>
     </form>
 
-    <!-- Boutons d'action -->
+    <!-- Boutons Actions -->
     <div class="mb-3">
         <a href="{% url 'producttype_create' %}" class="btn btn-primary">Ajouter un Type de Produit</a>
         <a href="{% url 'producttype_export' %}" class="btn btn-success">Exporter en Excel</a>
         <a href="{% url 'producttype_import' %}" class="btn btn-warning">Importer un fichier Excel</a>
+        <button type="submit" class="btn btn-danger mt-2">Supprimer la sélection</button>
+
     </div>
 
-    <!-- Tableau des types de produits -->
-    <table class="table table-bordered">
-        <thead>
-            <tr>
-                <th>Code</th>
-                <th>Nom</th>
-                <th>Catégorie</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% if producttypes %}
+    <!-- Formulaire de suppression multiple -->
+    <form method="post">
+        {% csrf_token %}
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th><input type="checkbox" id="select-all"></th>
+                    <th>Code</th>
+                    <th>Nom</th>
+                    <th>Catégorie</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
                 {% for producttype in producttypes %}
                 <tr>
+                    <td><input type="checkbox" name="selected_producttypes" value="{{ producttype.id }}"></td>
                     <td>{{ producttype.id }}</td>
                     <td><a href="{% url 'producttype_detail' producttype.pk %}">{{ producttype.nom }}</a></td>
                     <td>{{ producttype.description }}</td>
                     <td>
                         <a href="{% url 'producttype_update' producttype.pk %}" class="btn btn-warning btn-sm">Modifier</a>
-                        <a href="{% url 'producttype_delete' producttype.pk %}" class="btn btn-danger btn-sm">Supprimer</a>
                     </td>
                 </tr>
                 {% endfor %}
-            {% else %}
-                <tr>
-                    <td colspan="4" class="text-center">Aucun type de produit trouvé.</td>
-                </tr>
-            {% endif %}
-        </tbody>
-    </table>
+            </tbody>
+        </table>
+    </form>
 </div>
+
+<script>
+    // Sélectionner/désélectionner toutes les cases à cocher
+    document.getElementById("select-all").addEventListener("change", function() {
+        let checkboxes = document.querySelectorAll('input[name="selected_producttypes"]');
+        checkboxes.forEach(checkbox => checkbox.checked = this.checked);
+    });
+</script>
+
 {% endblock %}
