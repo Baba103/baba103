@@ -1536,6 +1536,7 @@ from datetime import datetime, timedelta
 from django.http import JsonResponse
 from django.db.models import Avg
 from .models import ProductPrice, CartProduct, Inpc
+@login_required
 
 def get_inpc_chart_data(request):
     # Définition de la période de référence (ex : janvier 2023)
@@ -1596,6 +1597,7 @@ from django.shortcuts import render
 from django.db.models import F
 from .models import Inpc2
 import datetime
+@login_required
 
 def calculate_inpc_2(request):
     selected_year = request.GET.get('year', datetime.datetime.today().year)
@@ -1651,6 +1653,7 @@ def calculate_inpc_2(request):
 
 from django.http import JsonResponse
 from .models import Inpc
+@login_required
 
 def get_inpc_chart_data(request):
     """Récupère les données INPC pour le graphique"""
@@ -1677,6 +1680,7 @@ def get_inpc_chart_data(request):
 
 from django.shortcuts import render
 from .models import Inpc2
+@login_required
 
 def list_inpc_2(request):
     # Récupérer toutes les valeurs INPC triées par date (du plus récent au plus ancien)
@@ -1688,7 +1692,7 @@ def list_inpc_2(request):
 
 
 from .models import Inpc2
-
+@login_required
 def list_inpc_2(request):
     # Récupération du filtre de date si fourni
     date_filter = request.GET.get('date_filter', '')
