@@ -2,27 +2,27 @@
 
 {% block content %}
 <div class="container mt-4">
-    <h2>Liste des Communes</h2>
+    <h2 class="text-center">Liste des Communes</h2>
 
     <!-- Formulaire de recherche -->
     <form method="get" class="mb-3">
         <div class="input-group">
-            <input type="text" name="q" class="form-control" placeholder="Rechercher par ID, Nom ou Moughataa" value="{{ query }}">
-            <button class="btn btn-primary" type="submit">Rechercher</button>
+            <input type="text" name="q" class="form-control" placeholder="Rechercher par ID, Nom ou Moughataa" value="{{ request.GET.q }}">
+            <button class="btn btn-primary" type="submit">🔍 Rechercher</button>
         </div>
     </form>
 
     <!-- Boutons d'actions -->
     <div class="mb-3">
-        <a href="{% url 'commune_create' %}" class="btn btn-primary">Ajouter une Commune</a>
-        <a href="{% url 'commune_export' %}" class="btn btn-success">Exporter les Communes</a>
-        <a href="{% url 'commune_export' %}?format=xlsx" class="btn btn-info">Exporter les Communes en Excel</a>
-        <a href="{% url 'commune_import' %}" class="btn btn-info">Importer des Communes</a>
+        <a href="{% url 'commune_create' %}" class="btn btn-primary">+ Ajouter une Commune</a>
+        <a href="{% url 'commune_export' %}" class="btn btn-success">📂 Exporter les Communes</a>
+        <a href="{% url 'commune_export' %}?format=xlsx" class="btn btn-info">📊 Exporter en Excel</a>
+        <a href="{% url 'commune_import' %}" class="btn btn-warning">📥 Importer des Communes</a>
     </div>
 
     <!-- Tableau des Communes -->
     <table class="table table-bordered">
-        <thead>
+        <thead class="table-dark">
             <tr>
                 <th>ID</th>
                 <th>Nom</th>
@@ -37,19 +37,50 @@
                 <td>{{ commune.nom }}</td>
                 <td>{{ commune.moughataa.label }}</td>
                 <td>
-                    <a href="{% url 'commune_update' commune.pk %}" class="btn btn-warning btn-sm">Modifier</a>
-                    <a href="{% url 'commune_delete' commune.pk %}" class="btn btn-danger btn-sm">Supprimer</a>
+                    <a href="{% url 'commune_update' commune.pk %}" class="btn btn-warning btn-sm">✏ Modifier</a>
+                    <a href="{% url 'commune_delete' commune.pk %}" class="btn btn-danger btn-sm">🗑 Supprimer</a>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="4" class="text-center">
+                    Aucun résultat trouvé pour "{{ request.GET.q }}"
                 </td>
             </tr>
             {% endfor %}
         </tbody>
     </table>
 
-    <!-- Message si aucune commune n'est trouvée -->
-    {% if not communes %}
-    <div class="alert alert-info mt-3" role="alert">
-        Aucune commune trouvée pour la recherche "{{ query }}".
-    </div>
+    <!-- PAGINATION -->
+    {% if is_paginated %}
+        <nav aria-label="Pagination">
+            <ul class="pagination justify-content-center">
+                <!-- 🔙 Bouton Première Page -->
+                {% if page_obj.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page=1{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}">&laquo; Première</a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}">Précédente</a>
+                    </li>
+                {% endif %}
+
+                <!-- 📄 Affichage du numéro de page actuel -->
+                <li class="page-item disabled">
+                    <span class="page-link">Page {{ page_obj.number }} sur {{ page_obj.paginator.num_pages }}</span>
+                </li>
+
+                <!-- ⏭️ Bouton Page Suivante -->
+                {% if page_obj.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}">Suivante</a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}">Dernière &raquo;</a>
+                    </li>
+                {% endif %}
+            </ul>
+        </nav>
     {% endif %}
 </div>
 {% endblock %}

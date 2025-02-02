@@ -13,6 +13,7 @@ from openpyxl import load_workbook
 import openpyxl
 from .resources import CartProductResource
 from django.http import JsonResponse
+from django.core.paginator import Paginator
 
 
 from django.views.generic import ListView, DetailView, CreateView, DeleteView, UpdateView
@@ -20,15 +21,31 @@ from django.urls import reverse_lazy
 from .models.model import Wilaya, Moughataa, Commune, ProductType, Product, PointOfSale, ProductPrice , Cart, CartProduct
 from django.db.models import Q  # Pour la recherche avancée
 
+
+
+from django.shortcuts import render
+import time
+
+#def welcome_view(request):
+ #   return render(request, "welcome.html")  # Affiche la page de bienvenue
+
+#def home_view(request):
+ #   return render(request, "dashboard.html")  # Charge la page d'accueil après 3s
+
+def welcome_view(request):
+    return render(request, "welcome.html")
+
 @login_required
 def home(request):
     return render(request, "home.html")  # ✅ Vérifie que le fichier home.html existe bien
 # 📍 Liste des Wilayas
+from django.core.paginator import Paginator
 
-class WilayaListView(LoginRequiredMixin,ListView):
+class WilayaListView(LoginRequiredMixin, ListView):
     model = Wilaya
     template_name = "myapp/wilaya_list.html"  # ✅ Modification ici
     context_object_name = "wilayas"
+    paginate_by = 10  # 🔹 Nombre d'éléments par page
 
     def get_queryset(self):
         queryset = super().get_queryset()
@@ -38,7 +55,6 @@ class WilayaListView(LoginRequiredMixin,ListView):
                 Q(name__icontains=query) | Q(code__icontains=query)
             )  # Recherche par nom ou code
         return queryset
-
 
 # 📍 Détails d'une Wilaya
 class WilayaDetailView(LoginRequiredMixin,DetailView):
@@ -67,31 +83,20 @@ class WilayaDeleteView(LoginRequiredMixin,DeleteView):
     success_url = reverse_lazy('wilaya_list')
 
 # 📍 Liste des Moughataas avec recherche
-class MoughataaListView(LoginRequiredMixin,ListView):
+class MoughataaListView(LoginRequiredMixin, ListView):
     model = Moughataa
-    template_name = "myapp/moughataa_list.html"  # ✅ Modification ici
+    template_name = "myapp/moughataa_list.html"
     context_object_name = "moughataas"
+    paginate_by = 15  # ✅ Active la pagination (affiche 5 moughataas par page)
 
-    # Logique de recherche
     def get_queryset(self):
-        query = self.request.GET.get('q')  # Récupérer la requête de recherche
+        queryset = super().get_queryset()
+        query = self.request.GET.get("q")  # Récupère la recherche
         if query:
-            # Filtrer les moughataas par code, label ou wilaya
-            return Moughataa.objects.filter(
-                code__icontains=query
-            ) | Moughataa.objects.filter(
-                label__icontains=query
-            ) | Moughataa.objects.filter(
-                wilaya__name__icontains=query
+            queryset = queryset.filter(
+                Q(label__icontains=query) | Q(code__icontains=query) | Q(wilaya__name__icontains=query)
             )
-        # Retourner toutes les moughataas si aucune recherche
-        return Moughataa.objects.all()
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['query'] = self.request.GET.get('q', '')  # Ajouter la requête actuelle au contexte
-        return context
-
+        return queryset
     
     
 
@@ -126,36 +131,20 @@ class MoughataaDeleteView(LoginRequiredMixin,DeleteView):
     success_url = reverse_lazy('moughataa_list')
 
 # 📍 Liste des Communes avec fonctionnalité de recherche
-class CommuneListView(LoginRequiredMixin,ListView):
+class CommuneListView(LoginRequiredMixin, ListView):
     model = Commune
-    template_name = "myapp/commune_list.html"  # Le fichier HTML correspondant
-    context_object_name = "communes"  # Nom utilisé pour accéder aux données dans le template
+    template_name = "myapp/commune_list.html"
+    context_object_name = "communes"
+    paginate_by = 20  # ✅ Active la pagination (affiche 5 communes par page)
 
     def get_queryset(self):
-        """
-        Retourne la liste des communes, filtrée par la requête de recherche si elle existe.
-        """
-        query = self.request.GET.get('q')  # Récupérer la requête de recherche depuis le paramètre 'q'
+        queryset = super().get_queryset()
+        query = self.request.GET.get("q")  # Récupère la recherche
         if query:
-            # Filtrer les communes par ID, nom ou moughataa associée
-            return Commune.objects.filter(
-                pk__icontains=query  # Recherche par ID
-            ) | Commune.objects.filter(
-                nom__icontains=query  # Recherche par Nom
-            ) | Commune.objects.filter(
-                moughataa__label__icontains=query  # Recherche par Moughataa
+            queryset = queryset.filter(
+                Q(nom__icontains=query) | Q(pk__icontains=query) | Q(moughataa__label__icontains=query)
             )
-        # Retourne toutes les communes si aucune recherche n'est effectuée
-        return Commune.objects.all()
-
-    def get_context_data(self, **kwargs):
-        """
-        Ajoute des données supplémentaires au contexte pour le template.
-        """
-        context = super().get_context_data(**kwargs)
-        context['query'] = self.request.GET.get('q', '')  # Conserve la requête de recherche dans le contexte
-        return context
-    
+        return queryset
 
 
 
@@ -191,25 +180,24 @@ class ProductTypeListView(LoginRequiredMixin, ListView):
     model = ProductType
     template_name = "myapp/producttype_list.html"
     context_object_name = "producttypes"
+    paginate_by = 10  # ✅ Active la pagination
 
     def get_queryset(self):
-        """Gère la recherche par nom ou catégorie"""
         queryset = super().get_queryset()
-        query = self.request.GET.get("q")
+        query = self.request.GET.get("q")  # ✅ Récupère la valeur du champ de recherche
+
         if query:
             queryset = queryset.filter(
                 Q(nom__icontains=query) |
-                Q(categorie__icontains=query)
+                Q(description__icontains=query)
             )
+
         return queryset
 
-    def post(self, request, *args, **kwargs):
-        """Gère la suppression en masse"""
-        selected_producttypes = request.POST.getlist('selected_producttypes')
-        if selected_producttypes:
-            ProductType.objects.filter(id__in=selected_producttypes).delete()
-        return redirect('producttype_list')
-
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["query"] = self.request.GET.get("q", "")  # ✅ Ajoute la requête au contexte
+        return context
 
 
 # 📍 Détails d'un Type de Produit
@@ -239,27 +227,28 @@ class ProductTypeDeleteView(LoginRequiredMixin,DeleteView):
     success_url = reverse_lazy('producttype_list')
 
 # 📍 Liste des Produits
-class ProductListView(ListView):
+class ProductListView(LoginRequiredMixin, ListView):
     model = Product
     template_name = "myapp/product_list.html"
     context_object_name = "products"
+    paginate_by = 10  # ✅ Active la pagination
 
     def get_queryset(self):
         queryset = super().get_queryset()
-        query = self.request.GET.get("q")  # Récupère le terme de recherche
+        query = self.request.GET.get("q")  # ✅ Récupère la valeur du champ de recherche
+
         if query:
             queryset = queryset.filter(
-                Q(nom__=query) |  # Recherche par nom
-                Q(description__icontains=query) |  # Recherche par catégorie
-                Q(unite_mesure__=query)  # Recherche par type de produit
+                Q(nom__icontains=query) |
+                Q(unite_mesure__icontains=query)
             )
+
         return queryset
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["query"] = self.request.GET.get("q", "")  # Ajoute la requête au contexte
+        context["query"] = self.request.GET.get("q", "")  # ✅ Ajoute la requête au contexte
         return context
-
 
 # 📍 Détails d'un Produit
 class ProductDetailView(LoginRequiredMixin,DetailView):
@@ -292,12 +281,16 @@ class PointOfSaleListView(LoginRequiredMixin, ListView):
     model = PointOfSale
     template_name = "myapp/pointofsale_list.html"
     context_object_name = "pointofsales"
+    paginate_by = 15  # ✅ Active la pagination (affiche 5 points de vente par page)
 
-    def post(self, request, *args, **kwargs):
-        selected_pointofsales = request.POST.getlist('selected_pointofsales')  # Récupérer les IDs sélectionnés
-        if selected_pointofsales:
-            PointOfSale.objects.filter(id__in=selected_pointofsales).delete()
-        return redirect('pointofsale_list')
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        query = self.request.GET.get("q")  # Récupère la recherche
+        if query:
+            queryset = queryset.filter(
+                Q(nom__icontains=query) | Q(type__icontains=query) | Q(commune__nom__icontains=query)
+            )
+        return queryset
 
 
 # 📍 Détails d'un Point de Vente
@@ -327,11 +320,29 @@ class PointOfSaleDeleteView(LoginRequiredMixin,DeleteView):
     success_url = reverse_lazy('pointofsale_list')
 
 # 📍 Liste des Prix des Produits
-class ProductPriceListView(LoginRequiredMixin,ListView):
+class ProductPriceListView(LoginRequiredMixin, ListView):
     model = ProductPrice
     template_name = "myapp/productprice_list.html"
     context_object_name = "productprices"
+    paginate_by = 10  # ✅ Active la pagination
 
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        query = self.request.GET.get("q")  # ✅ Récupère la valeur du champ de recherche
+
+        if query:
+            queryset = queryset.filter(
+                Q(produit__nom__icontains=query) |
+                Q(point_vente__nom__icontains=query) |
+                Q(valeur__icontains=query)
+            )
+
+        return queryset
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["query"] = self.request.GET.get("q", "")  # ✅ Ajoute la requête au contexte
+        return context
 # 📍 Détails d'un Prix de Produit
 class ProductPriceDetailView(LoginRequiredMixin,DetailView):
     model = ProductPrice
@@ -360,15 +371,28 @@ class ProductPriceDeleteView(LoginRequiredMixin,DeleteView):
 
 
 # 📍 Liste des Paniers
-class CartListView(LoginRequiredMixin,ListView):
+class CartListView(LoginRequiredMixin, ListView):
     model = Cart
     template_name = "myapp/cart_list.html"
     context_object_name = "carts"
-    def post(self, request, *args, **kwargs):
-        selected_carts = request.POST.getlist('selected_carts')  # Récupérer les IDs sélectionnés
-        if selected_carts:
-            Cart.objects.filter(id__in=selected_carts).delete()
-        return redirect('cart_list')
+    paginate_by = 10  # ✅ Active la pagination
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        query = self.request.GET.get("q")  # ✅ Récupère la valeur du champ de recherche
+
+        if query:
+            queryset = queryset.filter(
+                Q(nom__icontains=query) |
+                Q(description__icontains=query)
+            )
+
+        return queryset
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["query"] = self.request.GET.get("q", "")  # ✅ Ajoute la requête au contexte
+        return context
 
 # 📍 Détails d'un Panier
 class CartDetailView(LoginRequiredMixin,DetailView):
@@ -401,26 +425,25 @@ class CartProductListView(LoginRequiredMixin, ListView):
     model = CartProduct
     template_name = "myapp/cartproduct_list.html"
     context_object_name = "cartproducts"
+    paginate_by = 15  # ✅ Active la pagination
 
     def get_queryset(self):
-        """Gère la recherche par produit, panier ou poids"""
         queryset = super().get_queryset()
-        query = self.request.GET.get("q")
+        query = self.request.GET.get("q")  # ✅ Récupère la valeur du champ de recherche
+
         if query:
             queryset = queryset.filter(
                 Q(produit__nom__icontains=query) |
                 Q(panier__nom__icontains=query) |
                 Q(poids__icontains=query)
             )
+
         return queryset
 
-    def post(self, request, *args, **kwargs):
-        """Gère la suppression en masse"""
-        selected_cartproducts = request.POST.getlist('selected_cartproducts')
-        if selected_cartproducts:
-            CartProduct.objects.filter(id__in=selected_cartproducts).delete()
-        return redirect('cartproduct_list')
-
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["query"] = self.request.GET.get("q", "")  # ✅ Ajoute la requête au contexte
+        return context
 
     
 
@@ -1505,3 +1528,185 @@ def pie_product_categories(request):
     }
 
     return JsonResponse(data)
+
+#################################################################33
+import numpy as np
+import json
+from datetime import datetime, timedelta
+from django.http import JsonResponse
+from django.db.models import Avg
+from .models import ProductPrice, CartProduct, Inpc
+
+def get_inpc_chart_data(request):
+    # Définition de la période de référence (ex : janvier 2023)
+    reference_month = datetime(2023, 1, 1)
+    
+    # Récupérer les prix moyens par mois
+    prices_by_month = (
+        ProductPrice.objects
+        .values('date_from__year', 'date_from__month', 'produit')
+        .annotate(avg_price=Avg('valeur'))
+        .order_by('date_from__year', 'date_from__month')
+    )
+    
+    # Construire un dictionnaire des prix par produit et par mois
+    prices_dict = {}
+    for p in prices_by_month:
+        year_month = (p['date_from__year'], p['date_from__month'])
+        if year_month not in prices_dict:
+            prices_dict[year_month] = {}
+        prices_dict[year_month][p['produit']] = p['avg_price']
+    
+    # Récupérer les poids des produits
+    product_weights = {cp.produit.id: cp.poids for cp in CartProduct.objects.all()}
+    
+    # Trouver les prix de référence
+    ref_prices = prices_dict.get((reference_month.year, reference_month.month), {})
+    
+    # Calculer l'INPC pour chaque mois
+    inpc_values = []
+    dates = []
+    for (year, month), price_data in prices_dict.items():
+        numerator = sum(price_data.get(prod, 0) * product_weights.get(prod, 1) for prod in price_data)
+        denominator = sum(ref_prices.get(prod, 1) * product_weights.get(prod, 1) for prod in ref_prices)
+        if denominator > 0:
+            inpc = (numerator / denominator) * 100
+            inpc_values.append(inpc)
+            dates.append(f"{year}-{month:02d}")
+    
+    # Sauvegarder les valeurs INPC dans la base de données
+    for date_str, value in zip(dates, inpc_values):
+        Inpc.objects.update_or_create(mois=datetime.strptime(date_str, "%Y-%m"), defaults={'valeur': value})
+    
+    # Préparer les données pour Chart.js
+    chart_data = {
+        'labels': dates,
+        'datasets': [{
+            'label': "Évolution de l'INPC",
+            'data': inpc_values,
+            'borderColor': 'rgba(75, 192, 192, 1)',
+            'fill': False,
+            'tension': 0.4
+        }]
+    }
+    
+    return JsonResponse(chart_data)
+
+from django.shortcuts import render
+from django.db.models import F
+from .models import Inpc2
+import datetime
+
+def calculate_inpc_2(request):
+    selected_year = request.GET.get('year', datetime.datetime.today().year)
+    selected_month = request.GET.get('month', datetime.datetime.today().month)
+
+    try:
+        selected_date = datetime.date(int(selected_year), int(selected_month), 1)
+    except ValueError:
+        selected_date = None
+
+    inpc_value = None
+    message = "Aucune donnée INPC trouvée pour cette année."
+
+    if selected_date:
+        # Vérifier si des données existent pour cette année
+        year_data_exists = Inpc2.objects.filter(mois__year=selected_year).exists()
+
+        if year_data_exists:
+            # Récupérer la valeur INPC pour le mois sélectionné
+            inpc_entry = Inpc2.objects.filter(mois=selected_date).first()
+
+            if inpc_entry:
+                inpc_value = inpc_entry.valeur
+
+                # Récupérer la valeur INPC du mois précédent
+                previous_month = selected_date - datetime.timedelta(days=1)
+                previous_month = previous_month.replace(day=1)
+                previous_inpc_entry = Inpc2.objects.filter(mois=previous_month).first()
+
+                if previous_inpc_entry:
+                    previous_value = previous_inpc_entry.valeur
+                    variation = ((inpc_value - previous_value) / previous_value) * 100 if previous_value else 0
+
+                    if variation > 0:
+                        message = f"Le mois de {selected_date.strftime('%B %Y')} a subi une augmentation de {variation:.2f}%."
+                    elif variation < 0:
+                        message = f"Le mois de {selected_date.strftime('%B %Y')} a subi une diminution de {abs(variation):.2f}%."
+                    else:
+                        message = f"Le mois de {selected_date.strftime('%B %Y')} est stable."
+                else:
+                    message = f"Aucune donnée INPC pour le mois précédent ({previous_month.strftime('%B %Y')})."
+            else:
+                message = f"Aucune donnée INPC trouvée pour {selected_date.strftime('%B %Y')}."
+        else:
+            message = f"Aucune donnée INPC trouvée pour l'année {selected_year}."
+
+    return render(request, 'calculate_inpc_2.html', {
+        'selected_year': selected_year,
+        'selected_month': selected_month,
+        'inpc_value': inpc_value,
+        'message': message
+    })
+
+from django.http import JsonResponse
+from .models import Inpc
+
+def get_inpc_chart_data(request):
+    """Récupère les données INPC pour le graphique"""
+    inpc_entries = Inpc.objects.order_by('mois')
+
+    # Extraire les dates et valeurs INPC
+    dates = [entry.mois.strftime("%Y-%m") for entry in inpc_entries]
+    values = [entry.valeur for entry in inpc_entries]
+
+    # Préparer les données pour Chart.js
+    chart_data = {
+        'labels': dates,
+        'datasets': [{
+            'label': "Évolution de l'INPC",
+            'data': values,
+            'borderColor': 'rgba(75, 192, 192, 1)',
+            'backgroundColor': 'rgba(75, 192, 192, 0.2)',
+            'fill': True,
+            'tension': 0.4
+        }]
+    }
+
+    return JsonResponse(chart_data)
+
+from django.shortcuts import render
+from .models import Inpc2
+
+def list_inpc_2(request):
+    # Récupérer toutes les valeurs INPC triées par date (du plus récent au plus ancien)
+    inpc_data = Inpc2.objects.all().order_by('-mois')
+
+    return render(request, 'myapp/list_inpc_2.html', {
+        'inpc_data': inpc_data
+    })
+
+
+from .models import Inpc2
+
+def list_inpc_2(request):
+    # Récupération du filtre de date si fourni
+    date_filter = request.GET.get('date_filter', '')
+
+    # Filtrage des données INPC
+    if date_filter:
+        year, month = map(int, date_filter.split('-'))
+        inpc_data = Inpc2.objects.filter(mois__year=year, mois__month=month).order_by('-mois')
+    else:
+        inpc_data = Inpc2.objects.all().order_by('-mois')  # Trier par date descendante
+
+    # PAGINATION
+    paginator = Paginator(inpc_data, 10)  # 10 résultats par page
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    return render(request, 'myapp/list_inpc_2.html', {
+        'page_obj': page_obj,
+        'is_paginated': paginator.num_pages > 1,
+        'request': request
+    })

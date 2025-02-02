@@ -1,0 +1,60 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2 class="text-center">📊 Évolution de l'INPC</h2>
+    <canvas id="inpcChart"></canvas>
+</div>
+
+<!-- Intégration de Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    fetch("{% url 'inpc_chart_data' %}")
+        .then(response => response.json())
+        .then(data => {
+            const ctx = document.getElementById('inpcChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: data.labels,  // Mois de l'INPC
+                    datasets: [{
+                        label: "Indice National des Prix à la Consommation (INPC)",
+                        data: data.datasets[0].data,  // Valeurs INPC
+                        borderColor: 'rgba(75, 192, 192, 1)',
+                        backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                        borderWidth: 2,
+                        tension: 0.4, // Lissage de la courbe
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top'
+                        }
+                    },
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: "Mois"
+                            }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: "Valeur INPC"
+                            },
+                            beginAtZero: false
+                        }
+                    }
+                }
+            });
+        })
+        .catch(error => console.error("Erreur lors du chargement des données INPC:", error));
+});
+</script>
+{% endblock %}

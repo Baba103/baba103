@@ -1,6 +1,21 @@
 {% extends "base.html" %}
 
 {% block content %}
+
+
+<div class="card m-5">
+    <div class="card-header">
+      Definition
+    </div>
+    <div class="card-body">
+      <h5 class="card-title">Indice National des prix à la consommation (INPC)</h5>
+      <p class="card-text"> L'indice des prix à la consommation (IPC) est l'instrument de mesure de l'inflation. Il permet d'estimer, entre deux périodes données, la variation moyenne des prix des produits consommés par les ménages.
+  
+        Il est basé sur l'observation d'un panier fixe de biens et services, actualisé chaque année. Chaque produit est pondéré, dans l'indice global, proportionnellement à son poids dans la dépense de consommation des ménages </p>
+      
+    </div>
+  </div>
+      
 <div class="container mt-4">
     <h2 class="text-center">Tableau de Bord des Prix</h2>
 
@@ -26,12 +41,11 @@
         </div>
     </div>
 
-    <!-- 📈 Graphique d'Évolution des Prix -->
+    <!-- Graphiques -->
     <div class="chart-container mt-4" style="position: relative; height: 50vh; width: 80%;">
         <canvas id="lineChart"></canvas>
     </div>
 
-    <!-- 📊 Graphiques en Barres -->
     <div class="row mt-5">
         <div class="col-md-6">
             <h4 class="text-center">Évolution des Prix Moyens (Produit Sélectionné)</h4>
@@ -48,17 +62,23 @@
         </div>
     </div>
 
-    <!-- 🥧 Graphique en Camembert -->
     <div class="container mt-5">
         <h2 class="text-center">Répartition des Produits par Catégorie</h2>
-        <div class="chart-container mt-3" style="position: relative; height: 40vh; width: 50%;">
-            <canvas id="pieChartCategories"></canvas>
+        <div class="chart-container mt-3" style="position: relative; height: 40vh; width: 80%;">
+            <canvas id="categoryChart"></canvas>
+        </div>
+    </div>
+
+    <div class="container mt-5">
+        <h2 class="text-center">Évolution de l'INPC</h2>
+        <div class="chart-container mt-3" style="position: relative; height: 40vh; width: 80%;">
+            <canvas id="inpcChart"></canvas>
         </div>
     </div>
 </div>
 
-<!-- 📌 Inclure Charts.js -->
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<!-- Inclure Charts.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script>
 
 <script>
 document.addEventListener("DOMContentLoaded", function () {
@@ -66,143 +86,134 @@ document.addEventListener("DOMContentLoaded", function () {
     const timeframeSelect = document.getElementById("timeframe-select");
     const ctxLine = document.getElementById("lineChart").getContext("2d");
     let lineChartInstance = null;
-    
+
+    function updateChart(chartInstance, ctx, chartType, chartData, chartOptions) {
+        if (chartInstance) chartInstance.destroy();
+        return new Chart(ctx, { type: chartType, data: chartData, options: chartOptions });
+    }
+
+    function fetchData(url) {
+        return fetch(url).then(response => response.json());
+    }
+
     function updateLineChart(productId, aggregation) {
         if (!productId || aggregation === "daily") {
             if (lineChartInstance) lineChartInstance.destroy();
             return;
         }
-
-        fetch(`/get-product-price-data/?product_id=${productId}&aggregation=${aggregation}`)
-            .then(response => response.json())
+        fetchData(`/get-product-price-data/?product_id=${productId}&aggregation=${aggregation}`)
             .then(data => {
-                if (lineChartInstance) {
-                    lineChartInstance.destroy();
-                }
-                lineChartInstance = new Chart(ctxLine, {
-                    type: "line",
-                    data: {
-                        labels: data.dates,
-                        datasets: [{
-                            label: `Évolution du prix de ${data.product_name}`,
-                            data: data.prices,
-                            borderColor: "#007bff",
-                            backgroundColor: "rgba(54, 162, 235, 0.2)",
-                            pointRadius: 5,
-                            pointBackgroundColor: "#ff0000",
-                            fill: true,
-                            tension: 0.3
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: {
-                            legend: { labels: { font: { size: 14 } } }
-                        },
-                        scales: {
-                            x: { ticks: { autoSkip: true, maxTicksLimit: 10 } }
-                        }
-                    }
-                });
+                const chartData = {
+                    labels: data.dates,
+                    datasets: [{
+                        label: `Évolution du prix de ${data.product_name}`,
+                        data: data.prices,
+                        borderColor: "#007bff",
+                        backgroundColor: "rgba(54, 162, 235, 0.2)",
+                        pointRadius: 5,
+                        pointBackgroundColor: "#ff0000",
+                        fill: true,
+                        tension: 0.3
+                    }]
+                };
+                const chartOptions = {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: { x: { ticks: { autoSkip: true, maxTicksLimit: 10 } } }
+                };
+                lineChartInstance = updateChart(lineChartInstance, ctxLine, "line", chartData, chartOptions);
             });
+    }
+
+    function updateBarChart(ctxId, url, label, backgroundColor) {
+        fetchData(url).then(data => {
+            const ctx = document.getElementById(ctxId).getContext("2d");
+            const chartData = {
+                labels: data.dates,
+                datasets: [{
+                    label: label,
+                    data: data.prices,
+                    backgroundColor: backgroundColor
+                }]
+            };
+            const chartOptions = {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: { y: { beginAtZero: true } }
+            };
+            updateChart(null, ctx, "bar", chartData, chartOptions);
+        });
+    }
+
+    function loadCategoryChart() {
+        fetchData("/charts/pie-product-categories/")
+            .then(data => {
+                const ctxCategory = document.getElementById("categoryChart").getContext("2d");
+                const chartData = {
+                    labels: data.labels,
+                    datasets: [{
+                        label: "Répartition des Produits par Catégorie",
+                        data: data.values,
+                        backgroundColor: [
+                            "#FF6384", "#36A2EB", "#FFCE56", "#4BC0C0", "#9966FF", "#FF9F40"
+                        ]
+                    }]
+                };
+                const chartOptions = {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: "right" }
+                    }
+                };
+                updateChart(null, ctxCategory, "doughnut", chartData, chartOptions);
+            });
+    }
+
+    function loadInpcChart() {
+        fetchData("/api/inpc-data/")
+            .then(data => {
+                if (!data || !data.labels || !data.datasets) {
+                    console.error("Données INPC invalides:", data);
+                    return;
+                }
+                const ctxInpc = document.getElementById("inpcChart").getContext("2d");
+                const chartData = {
+                    labels: data.labels,
+                    datasets: [{
+                        label: "Évolution de l'INPC",
+                        data: data.datasets[0].data,
+                        borderColor: "rgba(75, 192, 192, 1)",
+                        backgroundColor: "rgba(75, 192, 192, 0.2)",
+                        fill: true,
+                        tension: 0.4
+                    }]
+                };
+                const chartOptions = {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: { title: { display: true, text: "Date (Mois/Année)" } },
+                        y: { title: { display: true, text: "Indice INPC" }, beginAtZero: false }
+                    }
+                };
+                updateChart(null, ctxInpc, "line", chartData, chartOptions);
+            })
+            .catch(error => console.error("Erreur chargement des données INPC:", error));
     }
 
     productSelect.addEventListener("change", function () {
         updateLineChart(this.value, timeframeSelect.value);
-        updateBarChartProduct(this.value);
+        updateBarChart("barChartProduct", `/charts/bar-product-prices/?product_id=${this.value}`, `Prix Moyen Mensuel`, "rgb(11, 207, 233)");
     });
 
     timeframeSelect.addEventListener("change", function () {
         updateLineChart(productSelect.value, this.value);
     });
 
-    // 📊 Charger les données pour le Bar Chart - Produit Sélectionné
-    function updateBarChartProduct(productId) {
-        if (!productId) return;
-
-        fetch(`/charts/bar-product-prices/?product_id=${productId}`)
-            .then(response => response.json())
-            .then(data => {
-                const ctxBarProduct = document.getElementById("barChartProduct").getContext("2d");
-                new Chart(ctxBarProduct, {
-                    type: "bar",
-                    data: {
-                        labels: data.dates,
-                        datasets: [{
-                            label: `Prix Moyen Mensuel (${data.product_name})`,
-                            data: data.prices,
-                            backgroundColor: "rgb(11, 207, 233)"
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        scales: {
-                            y: { beginAtZero: true }
-                        }
-                    }
-                });
-            });
-    }
-
-    // 📊 Charger les données pour le Bar Chart - Tous les Produits
-    fetch("/charts/bar-all-products/")
-        .then(response => response.json())
-        .then(data => {
-            const ctxBarAll = document.getElementById("barChartAllProducts").getContext("2d");
-            new Chart(ctxBarAll, {
-                type: "bar",
-                data: {
-                    labels: data.dates,
-                    datasets: [{
-                        label: "Prix Moyen Mensuel (Tous les Produits)",
-                        data: data.prices,
-                        backgroundColor: "rgba(25, 99, 132, 0.6)"
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: {
-                        y: { beginAtZero: true }
-                    }
-                }
-            });
-        });
-
-    // 🥧 Charger les données pour le Pie Chart - Répartition des Produits par Catégorie
-    fetch("/charts/pie-product-categories/")
-        .then(response => response.json())
-        .then(data => {
-            const ctxPie = document.getElementById("pieChartCategories").getContext("2d");
-            new Chart(ctxPie, {
-                type: "pie",
-                data: {
-                    labels: data.labels,
-                    datasets: [{
-                        label: "Nombre de Produits",
-                        data: data.values,
-                        backgroundColor: [
-                            "rgba(255, 99, 132, 0.6)",
-                            "rgba(54, 162, 235, 0.6)",
-                            "rgba(255, 206, 86, 0.6)",
-                            "rgba(75, 192, 192, 0.6)",
-                            "rgba(153, 102, 255, 0.6)",
-                            "rgba(255, 159, 64, 0.6)"
-                        ],
-                        borderWidth: 1
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: { position: "right" }
-                    }
-                }
-            });
-        });
+    updateBarChart("barChartAllProducts", "/charts/bar-all-products/", "Prix Moyen Mensuel (Tous les Produits)", "rgba(25, 99, 132, 0.6)");
+    loadCategoryChart();
+    loadInpcChart();
 });
 </script>
 

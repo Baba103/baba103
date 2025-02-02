@@ -4,25 +4,25 @@
 <div class="container mt-4">
     <h2>Liste des Prix des Produits</h2>
 
-    <!-- Formulaire de suppression en masse -->
+    <!-- Formulaire de recherche -->
+    <form method="get" action="{% url 'productprice_list' %}" class="mb-3">
+        <div class="input-group">
+            <input type="text" name="q" class="form-control" placeholder="Rechercher par produit, point de vente ou prix" value="{{ request.GET.q }}">
+            <button class="btn btn-primary" type="submit">🔍 Rechercher</button>
+        </div>
+    </form>
+
+    <!-- Boutons Actions -->
+    <div class="mb-3">
+        <a href="{% url 'productprice_create' %}" class="btn btn-primary">➕ Ajouter un Prix</a>
+        <a href="{% url 'productprice_import' %}" class="btn btn-warning">📥 Importer un fichier Excel</a>
+        <a href="{% url 'productprice_export' %}" class="btn btn-success">📤 Exporter en Excel</a>
+        <button type="button" class="btn btn-danger mt-2" id="bulk-delete-btn" disabled>🗑️ Supprimer la sélection</button>
+    </div>
+
+    <!-- Formulaire de suppression multiple -->
     <form method="post" id="bulk-delete-form">
         {% csrf_token %}
-
-        <!-- Barre de recherche -->
-        <div class="d-flex mb-3">
-            <input type="text" name="q" class="form-control me-2" placeholder="Rechercher par produit, point de vente ou prix" value="{{ query }}">
-            <button type="submit" class="btn btn-outline-primary">Rechercher</button>
-        </div>
-
-        <!-- Boutons d'action -->
-        <div class="mb-3">
-            <a href="{% url 'productprice_create' %}" class="btn btn-primary">Ajouter un Produit</a>
-            <a href="{% url 'productprice_import' %}" class="btn btn-warning">Importer un fichier Excel</a>
-            <a href="{% url 'productprice_export' %}" class="btn btn-success">Exporter en Excel</a>
-            <button type="button" class="btn btn-danger" id="bulk-delete-btn" disabled>Supprimer la sélection</button>
-        </div>
-
-        <!-- Tableau -->
         <table class="table table-bordered">
             <thead>
                 <tr>
@@ -45,14 +45,49 @@
                     <td>{{ price.date_from }}</td>
                     <td>{{ price.date_to|default:"En cours" }}</td>
                     <td>
-                        <a href="{% url 'productprice_update' price.pk %}" class="btn btn-warning btn-sm">Modifier</a>
-                        <a href="{% url 'productprice_delete' price.pk %}" class="btn btn-danger btn-sm">Supprimer</a>
+                        <a href="{% url 'productprice_update' price.pk %}" class="btn btn-warning btn-sm">✏️ Modifier</a>
+                        <a href="{% url 'productprice_delete' price.pk %}" class="btn btn-danger btn-sm">🗑️ Supprimer</a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7" class="text-center">
+                        Aucun prix trouvé pour "{{ request.GET.q }}"
                     </td>
                 </tr>
                 {% endfor %}
             </tbody>
         </table>
     </form>
+
+    <!-- PAGINATION -->
+    {% if is_paginated %}
+    <nav>
+        <ul class="pagination justify-content-center">
+            {% if page_obj.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?page=1&q={{ request.GET.q }}">⏮️ Première</a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}&q={{ request.GET.q }}">◀️ Précédent</a>
+                </li>
+            {% endif %}
+
+            <li class="page-item active">
+                <span class="page-link">Page {{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
+            </li>
+
+            {% if page_obj.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.next_page_number }}&q={{ request.GET.q }}">Suivant ▶️</a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}&q={{ request.GET.q }}">Dernière ⏭️</a>
+                </li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
 </div>
 
 <!-- Script JavaScript -->
@@ -63,15 +98,15 @@
         const deleteBtn = document.getElementById("bulk-delete-btn");
         const bulkDeleteForm = document.getElementById("bulk-delete-form");
 
-        // Gérer la sélection globale
+        // Sélectionner/Désélectionner toutes les cases à cocher
         selectAllCheckbox.addEventListener("change", function() {
             itemCheckboxes.forEach(checkbox => {
-                checkbox.checked = selectAllCheckbox.checked;
+                checkbox.checked = this.checked;
             });
             toggleDeleteButton();
         });
 
-        // Gérer la sélection individuelle
+        // Vérifier si une case est cochée pour activer le bouton de suppression
         itemCheckboxes.forEach(checkbox => {
             checkbox.addEventListener("change", function() {
                 toggleDeleteButton();

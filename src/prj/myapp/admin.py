@@ -4,6 +4,8 @@ from .models import Moughataa, Commune, Product, PointOfSale, ProductPrice, Prod
 from import_export.admin import ExportMixin
 from import_export import resources
 from .models import Wilaya  # Import uniquement les modèles nécessaires
+from .models import Inpc
+
 
 # Définir une ressource pour Wilaya
 class WilayaResource(resources.ModelResource):
@@ -32,3 +34,4 @@ admin.site.register(PointOfSale)
 admin.site.register(ProductPrice)
 admin.site.register(Cart)
 admin.site.register(CartProduct)
+admin.site.register(Inpc)

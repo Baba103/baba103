@@ -4,25 +4,25 @@
 <div class="container mt-4">
     <h2>Liste des Paniers</h2>
 
-    <!-- Formulaire de suppression en masse -->
+    <!-- Formulaire de recherche -->
+    <form method="get" action="{% url 'cart_list' %}" class="mb-3">
+        <div class="input-group">
+            <input type="text" name="q" class="form-control" placeholder="Rechercher par nom ou description" value="{{ request.GET.q }}">
+            <button class="btn btn-primary" type="submit">🔍 Rechercher</button>
+        </div>
+    </form>
+
+    <!-- Boutons d'action -->
+    <div class="mb-3">
+        <a href="{% url 'cart_create' %}" class="btn btn-primary">➕ Ajouter un Panier</a>
+        <a href="{% url 'cart_import' %}" class="btn btn-warning">📥 Importer un Fichier Excel</a>
+        <a href="{% url 'cart_export' %}" class="btn btn-success">📤 Exporter en Excel</a>
+        <button type="button" class="btn btn-danger" id="bulk-delete-btn" disabled>🗑️ Supprimer la sélection</button>
+    </div>
+
+    <!-- Tableau des Paniers -->
     <form method="post" id="bulk-delete-form">
         {% csrf_token %}
-        
-        <!-- Barre de recherche -->
-        <div class="d-flex mb-3">
-            <input type="text" name="q" class="form-control me-2" placeholder="Rechercher par nom ou description" value="{{ query }}">
-            <button type="submit" class="btn btn-outline-primary">Rechercher</button>
-        </div>
-
-        <!-- Boutons d'action -->
-        <div class="mb-3">
-            <a href="{% url 'cart_create' %}" class="btn btn-primary">Ajouter un Panier</a>
-            <a href="{% url 'cart_import' %}" class="btn btn-warning">Importer un Fichier Excel</a>
-            <a href="{% url 'cart_export' %}" class="btn btn-success">Exporter en Excel</a>
-            <button type="button" class="btn btn-danger" id="bulk-delete-btn" disabled>Supprimer la sélection</button>
-        </div>
-
-        <!-- Tableau -->
         <table class="table table-bordered">
             <thead>
                 <tr>
@@ -39,14 +39,49 @@
                     <td>{{ cart.nom }}</td>
                     <td>{{ cart.description }}</td>
                     <td>
-                        <a href="{% url 'cart_update' cart.pk %}" class="btn btn-warning btn-sm">Modifier</a>
-                        <a href="{% url 'cart_delete' cart.pk %}" class="btn btn-danger btn-sm">Supprimer</a>
+                        <a href="{% url 'cart_update' cart.pk %}" class="btn btn-warning btn-sm">✏️ Modifier</a>
+                        <a href="{% url 'cart_delete' cart.pk %}" class="btn btn-danger btn-sm">🗑️ Supprimer</a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="4" class="text-center">
+                        Aucun résultat trouvé pour "{{ request.GET.q }}"
                     </td>
                 </tr>
                 {% endfor %}
             </tbody>
         </table>
     </form>
+
+    <!-- PAGINATION -->
+    {% if is_paginated %}
+    <nav>
+        <ul class="pagination justify-content-center">
+            {% if page_obj.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?page=1&q={{ request.GET.q }}">⏮️ Première</a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}&q={{ request.GET.q }}">◀️ Précédent</a>
+                </li>
+            {% endif %}
+
+            <li class="page-item active">
+                <span class="page-link">Page {{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
+            </li>
+
+            {% if page_obj.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.next_page_number }}&q={{ request.GET.q }}">Suivant ▶️</a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}&q={{ request.GET.q }}">Dernière ⏭️</a>
+                </li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
 </div>
 
 <!-- Script JavaScript -->

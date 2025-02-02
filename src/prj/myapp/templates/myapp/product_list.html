@@ -5,19 +5,21 @@
     <h2>Liste des Produits</h2>
 
     <!-- Formulaire de recherche -->
-    <form method="get" class="d-flex mb-3">
-        <input type="text" name="q" class="form-control me-2" placeholder="Rechercher par nom ou unité de mesure" value="{{ query }}">
-        <button type="submit" class="btn btn-outline-primary">Rechercher</button>
+    <form method="get" action="{% url 'product_list' %}" class="mb-3">
+        <div class="input-group">
+            <input type="text" name="q" class="form-control" placeholder="Rechercher par nom ou unité de mesure" value="{{ request.GET.q }}">
+            <button class="btn btn-primary" type="submit">🔍 Rechercher</button>
+        </div>
     </form>
 
     <!-- Boutons d'action -->
     <div class="mb-3">
-        <a href="{% url 'product_create' %}" class="btn btn-primary">Ajouter un Produit</a>
-        <a href="{% url 'product_export' %}" class="btn btn-success">Exporter en Excel</a>
-        <a href="{% url 'product_import' %}" class="btn btn-warning">Importer un fichier Excel</a>
+        <a href="{% url 'product_create' %}" class="btn btn-primary">➕ Ajouter un Produit</a>
+        <a href="{% url 'product_import' %}" class="btn btn-warning">📥 Importer un fichier Excel</a>
+        <a href="{% url 'product_export' %}" class="btn btn-success">📤 Exporter en Excel</a>
     </div>
 
-    <!-- Tableau des produits -->
+    <!-- Tableau des Produits -->
     <table class="table table-bordered">
         <thead>
             <tr>
@@ -28,24 +30,53 @@
             </tr>
         </thead>
         <tbody>
-            {% if products %}
-                {% for product in products %}
-                <tr>
-                    <td>{{ product.id }}</td>
-                    <td><a href="{% url 'product_detail' product.pk %}">{{ product.nom }}</a></td>
-                    <td>{{ product.unite_mesure }}</td>
-                    <td>
-                        <a href="{% url 'product_update' product.pk %}" class="btn btn-warning btn-sm">Modifier</a>
-                        <a href="{% url 'product_delete' product.pk %}" class="btn btn-danger btn-sm">Supprimer</a>
-                    </td>
-                </tr>
-                {% endfor %}
-            {% else %}
-                <tr>
-                    <td colspan="4" class="text-center">Aucun produit trouvé.</td>
-                </tr>
-            {% endif %}
+            {% for product in products %}
+            <tr>
+                <td>{{ product.id }}</td>
+                <td><a href="{% url 'product_detail' product.pk %}">{{ product.nom }}</a></td>
+                <td>{{ product.unite_mesure }}</td>
+                <td>
+                    <a href="{% url 'product_update' product.pk %}" class="btn btn-warning btn-sm">✏️ Modifier</a>
+                    <a href="{% url 'product_delete' product.pk %}" class="btn btn-danger btn-sm">🗑️ Supprimer</a>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="4" class="text-center">
+                    Aucun produit trouvé pour "{{ request.GET.q }}"
+                </td>
+            </tr>
+            {% endfor %}
         </tbody>
     </table>
+
+    <!-- PAGINATION -->
+    {% if is_paginated %}
+    <nav>
+        <ul class="pagination justify-content-center">
+            {% if page_obj.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?page=1&q={{ request.GET.q }}">⏮️ Première</a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}&q={{ request.GET.q }}">◀️ Précédent</a>
+                </li>
+            {% endif %}
+
+            <li class="page-item active">
+                <span class="page-link">Page {{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
+            </li>
+
+            {% if page_obj.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.next_page_number }}&q={{ request.GET.q }}">Suivant ▶️</a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}&q={{ request.GET.q }}">Dernière ⏭️</a>
+                </li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
 </div>
 {% endblock %}

@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2 class="text-center">Calculer l'Indice National des Prix à la Consommation (INPC)</h2>
+
+    <form method="GET" action="{% url 'calculate_inpc_2' %}" class="mt-4">
+        <div class="mb-3">
+            <label for="year" class="form-label">Sélectionnez l'année :</label>
+            <input type="number" id="year" name="year" class="form-control" value="{{ selected_year }}" required>
+        </div>
+
+        <div class="mb-3">
+            <label for="month" class="form-label">Sélectionnez le mois :</label>
+            <select id="month" name="month" class="form-control" required>
+                <option value="" disabled selected>-- Choisissez un mois --</option>
+                <option value="1" {% if selected_month == "1" %}selected{% endif %}>Janvier</option>
+                <option value="2" {% if selected_month == "2" %}selected{% endif %}>Février</option>
+                <option value="3" {% if selected_month == "3" %}selected{% endif %}>Mars</option>
+                <option value="4" {% if selected_month == "4" %}selected{% endif %}>Avril</option>
+                <option value="5" {% if selected_month == "5" %}selected{% endif %}>Mai</option>
+                <option value="6" {% if selected_month == "6" %}selected{% endif %}>Juin</option>
+                <option value="7" {% if selected_month == "7" %}selected{% endif %}>Juillet</option>
+                <option value="8" {% if selected_month == "8" %}selected{% endif %}>Août</option>
+                <option value="9" {% if selected_month == "9" %}selected{% endif %}>Septembre</option>
+                <option value="10" {% if selected_month == "10" %}selected{% endif %}>Octobre</option>
+                <option value="11" {% if selected_month == "11" %}selected{% endif %}>Novembre</option>
+                <option value="12" {% if selected_month == "12" %}selected{% endif %}>Décembre</option>
+            </select>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Calculer</button>
+    </form>
+
+    {% if inpc_value is not None %}
+    <div class="mt-4 p-4 bg-light border rounded">
+        <h4>Résultat de l'INPC</h4>
+        <p><strong>Année :</strong> {{ selected_year }}</p>
+        <p><strong>Mois :</strong> {{ selected_month }}</p>
+        <p><strong>INPC :</strong> {{ inpc_value }} (Base 100 = Année 2019)</p>
+        <p class="text-muted"><i>{{ message }}</i></p>
+    </div>
+    {% else %}
+    <p class="text-center text-danger mt-4"><strong>{{ message }}</strong></p>
+    {% endif %}
+</div>
+{% endblock %}

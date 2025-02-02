@@ -2,3 +2,4 @@ Django
 mysqlclient
 openpyxl
 django-import-export
+numpy

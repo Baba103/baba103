@@ -2,7 +2,7 @@
 
 {% block content %}
 <div class="container mt-4">
-    <h2>Liste des Wilayas</h2>
+    <h2 class="text-center">Liste des Wilayas</h2>
 
     <!-- Barre de recherche -->
     <form method="get" action="{% url 'wilaya_list' %}" class="mb-3 d-flex">
@@ -20,15 +20,15 @@
 
     <!-- Boutons pour ajouter, exporter et importer -->
     <div class="mb-3">
-        <a href="{% url 'wilaya_create' %}" class="btn btn-primary">Ajouter une Wilaya</a>
-        <a href="{% url 'wilaya_export' %}" class="btn btn-success">Exporter en CSV</a>
-        <a href="{% url 'wilaya_export' %}?format=xlsx" class="btn btn-info">Exporter en Excel</a>
-        <a href="{% url 'wilaya_import' %}" class="btn btn-warning">Importer un fichier Excel</a>
+        <a href="{% url 'wilaya_create' %}" class="btn btn-primary">+ Ajouter une Wilaya</a>
+        <a href="{% url 'wilaya_export' %}" class="btn btn-success">📂 Exporter en CSV</a>
+        <a href="{% url 'wilaya_export' %}?format=xlsx" class="btn btn-info">📊 Exporter en Excel</a>
+        <a href="{% url 'wilaya_import' %}" class="btn btn-warning">📥 Importer un fichier Excel</a>
     </div>
 
     <!-- Tableau des Wilayas -->
     <table class="table table-bordered">
-        <thead>
+        <thead class="table-dark">
             <tr>
                 <th>Code</th>
                 <th>Nom</th>
@@ -41,8 +41,8 @@
                 <td>{{ wilaya.code }}</td>
                 <td><a href="{% url 'wilaya_detail' wilaya.pk %}">{{ wilaya.name }}</a></td>
                 <td>
-                    <a href="{% url 'wilaya_update' wilaya.pk %}" class="btn btn-warning btn-sm">Modifier</a>
-                    <a href="{% url 'wilaya_delete' wilaya.pk %}" class="btn btn-danger btn-sm">Supprimer</a>
+                    <a href="{% url 'wilaya_update' wilaya.pk %}" class="btn btn-warning btn-sm">✏ Modifier</a>
+                    <a href="{% url 'wilaya_delete' wilaya.pk %}" class="btn btn-danger btn-sm">🗑 Supprimer</a>
                 </td>
             </tr>
             {% empty %}
@@ -54,5 +54,37 @@
             {% endfor %}
         </tbody>
     </table>
+
+    <!-- PAGINATION -->
+    {% if is_paginated %}
+        <nav aria-label="Pagination">
+            <ul class="pagination justify-content-center">
+                <!-- 🔙 Bouton Première Page -->
+                {% if page_obj.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page=1{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}">&laquo; Première</a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}">Précédente</a>
+                    </li>
+                {% endif %}
+
+                <!-- 📄 Affichage du numéro de page actuel -->
+                <li class="page-item disabled">
+                    <span class="page-link">Page {{ page_obj.number }} sur {{ page_obj.paginator.num_pages }}</span>
+                </li>
+
+                <!-- ⏭️ Bouton Page Suivante -->
+                {% if page_obj.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}">Suivante</a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}">Dernière &raquo;</a>
+                    </li>
+                {% endif %}
+            </ul>
+        </nav>
+    {% endif %}
 </div>
 {% endblock %}

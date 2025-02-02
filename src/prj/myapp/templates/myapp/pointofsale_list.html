@@ -2,7 +2,7 @@
 
 {% block content %}
 <div class="container mt-4">
-    <h2>Liste des Points de Vente</h2>
+    <h2 class="text-center">Liste des Points de Vente</h2>
 
     <!-- Formulaire de suppression en masse -->
     <form method="post" id="bulk-delete-form">
@@ -10,21 +10,21 @@
 
         <!-- Barre de recherche -->
         <div class="d-flex mb-3">
-            <input type="text" name="q" class="form-control me-2" placeholder="Rechercher par nom, type ou commune" value="{{ query }}">
-            <button type="submit" class="btn btn-outline-primary">Rechercher</button>
+            <input type="text" name="q" class="form-control me-2" placeholder="Rechercher par nom, type ou commune" value="{{ request.GET.q }}">
+            <button type="submit" class="btn btn-primary">🔍 Rechercher</button>
         </div>
 
         <!-- Boutons d'action -->
         <div class="mb-3">
-            <a href="{% url 'pointofsale_create' %}" class="btn btn-primary">Ajouter un Point de Vente</a>
-            <a href="{% url 'pointofsale_import' %}" class="btn btn-warning">Importer un fichier Excel</a>
-            <a href="{% url 'pointofsale_export' %}" class="btn btn-success">Exporter en Excel</a>
-            <button type="button" class="btn btn-danger" id="bulk-delete-btn" disabled>Supprimer la sélection</button>
+            <a href="{% url 'pointofsale_create' %}" class="btn btn-primary">+ Ajouter un Point de Vente</a>
+            <a href="{% url 'pointofsale_import' %}" class="btn btn-warning">📥 Importer un fichier Excel</a>
+            <a href="{% url 'pointofsale_export' %}" class="btn btn-success">📂 Exporter en Excel</a>
+            <button type="button" class="btn btn-danger" id="bulk-delete-btn" disabled>🗑 Supprimer la sélection</button>
         </div>
 
         <!-- Tableau -->
         <table class="table table-bordered">
-            <thead>
+            <thead class="table-dark">
                 <tr>
                     <th><input type="checkbox" id="select-all"></th>
                     <th>Code</th>
@@ -43,14 +43,50 @@
                     <td>{{ pointofsale.type }}</td>
                     <td>{{ pointofsale.commune.nom }}</td>
                     <td>
-                        <a href="{% url 'pointofsale_update' pointofsale.pk %}" class="btn btn-warning btn-sm">Modifier</a>
-                        <a href="{% url 'pointofsale_delete' pointofsale.pk %}" class="btn btn-danger btn-sm">Supprimer</a>
+                        <a href="{% url 'pointofsale_update' pointofsale.pk %}" class="btn btn-warning btn-sm">✏ Modifier</a>
+                        <a href="{% url 'pointofsale_delete' pointofsale.pk %}" class="btn btn-danger btn-sm">🗑 Supprimer</a>
                     </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" class="text-center">Aucun résultat trouvé pour "{{ request.GET.q }}"</td>
                 </tr>
                 {% endfor %}
             </tbody>
         </table>
     </form>
+
+    <!-- PAGINATION -->
+    {% if is_paginated %}
+        <nav aria-label="Pagination">
+            <ul class="pagination justify-content-center">
+                <!-- 🔙 Bouton Première Page -->
+                {% if page_obj.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page=1{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}">&laquo; Première</a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}">Précédente</a>
+                    </li>
+                {% endif %}
+
+                <!-- 📄 Affichage du numéro de page actuel -->
+                <li class="page-item disabled">
+                    <span class="page-link">Page {{ page_obj.number }} sur {{ page_obj.paginator.num_pages }}</span>
+                </li>
+
+                <!-- ⏭️ Bouton Page Suivante -->
+                {% if page_obj.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}">Suivante</a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}">Dernière &raquo;</a>
+                    </li>
+                {% endif %}
+            </ul>
+        </nav>
+    {% endif %}
 </div>
 
 <!-- Script JavaScript -->

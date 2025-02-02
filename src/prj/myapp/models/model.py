@@ -97,3 +97,13 @@ class Inpc(models.Model):
 
     def __str__(self):
         return f"INPC {self.date} - {self.value}"
+
+from django.db import models
+
+class Inpc2(models.Model):
+    mois = models.DateField()
+    valeur = models.FloatField()
+    methode = models.CharField(max_length=255, default="Méthode 2")  # Indiquer la méthode utilisée
+
+    def __str__(self):
+        return f"INPC2 {self.mois} - {self.valeur}"

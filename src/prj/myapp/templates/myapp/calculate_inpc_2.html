@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2 class="text-center">Calculer l'Indice National des Prix à la Consommation (INPC) - Méthode 2</h2>
+
+    <table class="table table-bordered mt-4">
+        <thead>
+            <tr>
+                <th>Mois</th>
+                <th>INPC (Méthode 2)</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for inpc in inpc_values %}
+            <tr>
+                <td>{{ inpc.mois|date:"Y-m" }}</td>
+                <td>{{ inpc.valeur }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <a href="{% url 'calculate_inpc_2' %}" class="btn btn-primary">Recalculer</a>
+</div>
+{% endblock %}
