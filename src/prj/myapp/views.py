@@ -26,11 +26,6 @@ from django.db.models import Q  # Pour la recherche avancée
 from django.shortcuts import render
 import time
 
-#def welcome_view(request):
- #   return render(request, "welcome.html")  # Affiche la page de bienvenue
-
-#def home_view(request):
- #   return render(request, "dashboard.html")  # Charge la page d'accueil après 3s
 
 def welcome_view(request):
     return render(request, "welcome.html")
@@ -1535,53 +1530,67 @@ import json
 from datetime import datetime, timedelta
 from django.http import JsonResponse
 from django.db.models import Avg
-from .models import ProductPrice, CartProduct, Inpc
-@login_required
+from .models import ProductPrice, CartProduct
+from django.http import JsonResponse
+from django.db.models import Avg
+from .models import Inpc2
+import datetime
+
+
+
+
+from datetime import datetime, date
+from django.http import JsonResponse
+from .models import Inpc2, ProductPrice, CartProduct
 
 def get_inpc_chart_data(request):
     # Définition de la période de référence (ex : janvier 2023)
-    reference_month = datetime(2023, 1, 1)
-    
-    # Récupérer les prix moyens par mois
-    prices_by_month = (
-        ProductPrice.objects
-        .values('date_from__year', 'date_from__month', 'produit')
-        .annotate(avg_price=Avg('valeur'))
-        .order_by('date_from__year', 'date_from__month')
-    )
-    
-    # Construire un dictionnaire des prix par produit et par mois
-    prices_dict = {}
-    for p in prices_by_month:
-        year_month = (p['date_from__year'], p['date_from__month'])
-        if year_month not in prices_dict:
-            prices_dict[year_month] = {}
-        prices_dict[year_month][p['produit']] = p['avg_price']
-    
-    # Récupérer les poids des produits
+    reference_month = date(2023, 1, 1)
+
+    # Récupérer les poids des produits depuis CartProduct
     product_weights = {cp.produit.id: cp.poids for cp in CartProduct.objects.all()}
-    
-    # Trouver les prix de référence
+
+    # Construire un dictionnaire des prix par mois et par produit
+    prices = ProductPrice.objects.all()
+    prices_dict = {}
+    for price in prices:
+        key = (price.date_from.year, price.date_from.month)
+        if key not in prices_dict:
+            prices_dict[key] = {}
+        # En cas de doublon, ici la dernière valeur lue écrase les précédentes.
+        prices_dict[key][price.produit.id] = price.valeur
+
+    # Récupérer les prix de référence pour le mois de référence
     ref_prices = prices_dict.get((reference_month.year, reference_month.month), {})
-    
-    # Calculer l'INPC pour chaque mois
+    if not ref_prices:
+        return JsonResponse(
+            {'error': 'Aucun prix trouvé pour le mois de référence.'},
+            status=400
+        )
+
+    # Calculer l'INPC pour chaque mois et mettre à jour Inpc2
     inpc_values = []
-    dates = []
-    for (year, month), price_data in prices_dict.items():
+    labels = []
+    # Tri des clés pour avoir un ordre chronologique
+    for (year, month) in sorted(prices_dict.keys()):
+        price_data = prices_dict[(year, month)]
+        # Calcul du numérateur et du dénominateur en tenant compte des pondérations
         numerator = sum(price_data.get(prod, 0) * product_weights.get(prod, 1) for prod in price_data)
         denominator = sum(ref_prices.get(prod, 1) * product_weights.get(prod, 1) for prod in ref_prices)
         if denominator > 0:
             inpc = (numerator / denominator) * 100
+            # Sauvegarder la valeur dans la base de données (mise à jour ou création)
+            mois_date = date(year, month, 1)
+            Inpc2.objects.update_or_create(
+                mois=mois_date,
+                defaults={'valeur': inpc, 'methode': "Méthode 2"}
+            )
             inpc_values.append(inpc)
-            dates.append(f"{year}-{month:02d}")
-    
-    # Sauvegarder les valeurs INPC dans la base de données
-    for date_str, value in zip(dates, inpc_values):
-        Inpc.objects.update_or_create(mois=datetime.strptime(date_str, "%Y-%m"), defaults={'valeur': value})
-    
+            labels.append(f"{year}-{month:02d}")
+
     # Préparer les données pour Chart.js
     chart_data = {
-        'labels': dates,
+        'labels': labels,
         'datasets': [{
             'label': "Évolution de l'INPC",
             'data': inpc_values,
@@ -1590,14 +1599,18 @@ def get_inpc_chart_data(request):
             'tension': 0.4
         }]
     }
-    
+
     return JsonResponse(chart_data)
+
+
+
+
 
 from django.shortcuts import render
 from django.db.models import F
 from .models import Inpc2
 import datetime
-@login_required
+from .models import Inpc2
 
 def calculate_inpc_2(request):
     selected_year = request.GET.get('year', datetime.datetime.today().year)
@@ -1652,35 +1665,11 @@ def calculate_inpc_2(request):
     })
 
 from django.http import JsonResponse
-from .models import Inpc
-@login_required
-
-def get_inpc_chart_data(request):
-    """Récupère les données INPC pour le graphique"""
-    inpc_entries = Inpc.objects.order_by('mois')
-
-    # Extraire les dates et valeurs INPC
-    dates = [entry.mois.strftime("%Y-%m") for entry in inpc_entries]
-    values = [entry.valeur for entry in inpc_entries]
-
-    # Préparer les données pour Chart.js
-    chart_data = {
-        'labels': dates,
-        'datasets': [{
-            'label': "Évolution de l'INPC",
-            'data': values,
-            'borderColor': 'rgba(75, 192, 192, 1)',
-            'backgroundColor': 'rgba(75, 192, 192, 0.2)',
-            'fill': True,
-            'tension': 0.4
-        }]
-    }
-
-    return JsonResponse(chart_data)
+from .models import Inpc2
+  
 
 from django.shortcuts import render
 from .models import Inpc2
-@login_required
 
 def list_inpc_2(request):
     # Récupérer toutes les valeurs INPC triées par date (du plus récent au plus ancien)
@@ -1692,7 +1681,7 @@ def list_inpc_2(request):
 
 
 from .models import Inpc2
-@login_required
+
 def list_inpc_2(request):
     # Récupération du filtre de date si fourni
     date_filter = request.GET.get('date_filter', '')

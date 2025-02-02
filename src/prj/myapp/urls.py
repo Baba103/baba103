@@ -102,8 +102,8 @@ urlpatterns = [
     path('cartproducts/<int:pk>/delete/', CartProductDeleteView.as_view(), name='cartproduct_delete'),
     path('cartproducts/export/', CartProductExportView.as_view(), name='cartproduct_export'),
     path('cartproducts/import/', CartProductImportView.as_view(), name='cartproduct_import'),
-    path('calculate_inpc/', INPCCalculateView.as_view(), name='calculate_inpc'),
-    path('inpc/', InpcListView.as_view(), name='inpc_list'),  # Définition de la route pour 'inpc_list'
+    #path('calculate_inpc/', INPCCalculateView.as_view(), name='calculate_inpc'),
+    #path('inpc/', InpcListView.as_view(), name='inpc_list'),  # Définition de la route pour 'inpc_list'
     #path('price-evolution/<int:product_id>/<int:point_of_sale_id>/', views.price_evolution, name='price_evolution'),
     #path('price-comparison/<int:product_id>/', views.price_comparison, name='price_comparison'),
     path("dashboard/", dashboard_view, name="dashboard"),
@@ -117,10 +117,10 @@ urlpatterns = [
     path("charts/pie-product-categories/", pie_product_categories, name="pie_product_categories"),
     path("charts/bar-product-prices/", bar_chart_product_prices, name="bar_product_prices"),
     path("charts/bar-all-products/", bar_chart_all_products_prices, name="bar_all_products_prices"),
-    path('inpc-chart-data/', get_inpc_chart_data, name='inpc_chart_data'),
-    path('calculate-inpc-2/', calculate_inpc_2, name='calculate_inpc_2'),
     path('calculate-inpc-2/', calculate_inpc_2, name='calculate_inpc_2'),
     path('api/inpc-data/', get_inpc_chart_data, name='get_inpc_chart_data'),
+    path('inpc/chart-data/', get_inpc_chart_data, name='get_inpc_chart_data'),
+
     path('inpc/list/', list_inpc_2, name='list_inpc_2'),
 
 

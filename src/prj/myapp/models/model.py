@@ -1,4 +1,5 @@
 from django.db import models
+from django.utils.timezone import now
 
 
 
@@ -85,20 +86,6 @@ class CartProduct(models.Model):
 
 
 
-from django.db import models
-from django.utils.timezone import now
-
-
-from django.db import models
-
-class Inpc(models.Model):
-    mois = models.DateField()
-    valeur = models.FloatField()
-
-    def __str__(self):
-        return f"INPC {self.date} - {self.value}"
-
-from django.db import models
 
 class Inpc2(models.Model):
     mois = models.DateField()
